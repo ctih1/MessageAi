@@ -1,0 +1,6 @@
+*.h5
+tokenizer.pkl
+*.log
+messages.txt
+__pycache__/
+.env
