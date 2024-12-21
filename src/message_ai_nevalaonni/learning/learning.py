@@ -4,6 +4,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, LSTM, Dense
 from tensorflow.python.client import device_lib
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.models import load_model
 import random
 import os
 import json
@@ -20,7 +22,6 @@ class Learning:
         print("starting training")
         tokenizer = Tokenizer()
         tokenizer.fit_on_texts(sentences)
-        word_index = tokenizer.word_index
         sequences = tokenizer.texts_to_sequences(sentences)
 
         print("model init")
@@ -48,6 +49,27 @@ class Learning:
 
         with open("tokenizer.pkl", "wb") as handle:  # save in case of emergency
             pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+    def add_training_to_model(self, tokenizer, model_path:str, new_sentences:list):
+        model = load_model(model_path)
+        sequences = tokenizer.texts_to_sequences(new_sentences)
+
+        X = []
+        y = []
+        for seq in sequences:
+            for i in range(1, len(seq)):
+                X.append(seq[:i])
+                y.append(seq[i])
+
+        print("model init")
+
+        X_padded = pad_sequences(X, maxlen=379, padding="pre")
+        y = np.array(y)
+
+        history = model.fit(X_padded, y, epochs=8, validation_data=(X_padded, y))
+        checkpoint = ModelCheckpoint("nevalaonni_checkpoint.h5",save_best_only=True, monitor="val_loss", verbose=1)
+
+        model.save(model_path + ".new")
 
 
 if __name__ == "__main__":

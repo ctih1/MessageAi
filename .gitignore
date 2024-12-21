@@ -1,6 +1,8 @@
 *.h5
+*.h5.new/
 tokenizer.pkl
 *.log
 messages.txt
 __pycache__/
 .env
+messages.txt2

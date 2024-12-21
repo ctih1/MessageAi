@@ -13,11 +13,13 @@ generation:Generation = None
 async def on_ready():
     global generation
     print("Bot logged in!")
-    generation = Generation("/Users/nevalaonni/MessageAi/nevalaonni.h5")
+    generation = Generation(r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5.new")
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="The sound of fans spinning on the host server"))
 
 @bot.slash_command(description="Test")
 async def talk(ctx:discord.ApplicationContext, seed:str, max_word_amount:int):
+    if(ctx.author.id != 642441889181728810):
+        await ctx.respond("Haista vittu")
     await ctx.defer()
     await ctx.respond(generation.generate(seed,max_word_amount))
 
