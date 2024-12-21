@@ -8,7 +8,7 @@ import pickle
 class Generation:
     def __init__(self, model_path:str):
         self.model = load_model(model_path)
-        with open(r"C:\Users\nevalaonni\Desktop\MessageAi\src\tokenizer.pkl", "rb") as f:
+        with open("/Users/nevalaonni/MessageAi/tokenizer.pkl", "rb") as f:
             self.tokenizer = pickle.load(f)
 
     def generate(self,seed:str, word_amount:int = 5):
@@ -28,4 +28,4 @@ class Generation:
         return seed
 
 if __name__ == "__main__":
-    print(Generation(r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5").generate("I love penis they are "))
+    print(Generation("/Users/nevalaonni/MessageAi/nevalaonni.h5").generate("I love penis they are "))

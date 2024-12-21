@@ -2,3 +2,4 @@ tensorflow-gpu==2.10.0
 py-cord==2.6.1
 numpy==1.21.6
 keras==2.10.0
+flask
