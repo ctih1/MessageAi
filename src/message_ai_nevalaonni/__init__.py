@@ -7,6 +7,8 @@ import os
 from dotenv import load_dotenv
 import pickle
 import json
+import logging
+import sys
 
 load_dotenv()
 
@@ -27,6 +29,27 @@ def main():
 
     #return
     #server.app.run("0.0.0.0",8080,use_reloader=False)
+
+    logging.StreamHandler(sys.stdout)
+    logger = logging.getLogger("ma")
+    logging.basicConfig(filename='message_ai.log', level=logging.DEBUG)
+
+    logger.info("Starting bot")
+
+    if not os.getenv("BOT_TOKEN"):
+        logger.error("Discord bot token not defined in .env")
+        return
+
+    if not os.getenv("MODEL_PATH"):
+        logger.error("Model path not defined in .env")
+        return
+    
+    os
+
+    if not os.getenv("TOKENIZER_PATH"):
+        logger.error("Tokenizer path not defined in .env")
+        return
+
     bot.start(os.environ["BOT_TOKEN"])
 
     

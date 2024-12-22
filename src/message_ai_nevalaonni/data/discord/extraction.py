@@ -2,7 +2,7 @@ import os
 import json
 import logging
 
-logger = logging.getLogger("dma")
+logger = logging.getLogger("ma")
 
 class Extraction:
     def __init__(self, file_location:str):
@@ -23,6 +23,7 @@ class Extraction:
     
     def get_channel_name_id(self):
         if not self.valid:
+            logger.error("File path is not valid!")
             raise AttributeError("File path is not valid!")
         with open(os.path.join(self.file_location,"messages","index.json"),"r", encoding="utf-8") as f:
             self.convo_data = json.load(f)
@@ -43,7 +44,6 @@ class Extraction:
             
             for message in messages:
                 self.sentences.append(message["Contents"])
-
         return self
     
     def get_messages(self) -> list:

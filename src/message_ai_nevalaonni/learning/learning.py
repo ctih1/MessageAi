@@ -11,6 +11,9 @@ import os
 import json
 import numpy as np
 import pickle
+import logging
+
+logger = logging.getLogger("ma")
 
 class Learning:
     def __init__(self):
@@ -19,28 +22,27 @@ class Learning:
         pass
 
     def train_based_off_sentences(self,sentences:list):
-        print("starting training")
         tokenizer = Tokenizer()
         tokenizer.fit_on_texts(sentences)
-        sequences = tokenizer.texts_to_sequences(sentences)
+        sequences = tokenizer.texts_to_sequences(sentences) # builds a vocab based off of sentences
 
         print("model init")
 
-        X = []
-        y = []
+        X = [] # subsequences of word indexes 
+        y = [] # next word in sentence for each subseq
         for seq in sequences:
             for i in range(1, len(seq)):
                 X.append(seq[:i])
                 y.append(seq[i])
 
-        maxlen = max([len(x) for x in X])
-        X_padded = pad_sequences(X, maxlen=maxlen, padding="pre")
-        y = np.array(y)
+        maxlen = max([len(x) for x in X]) 
+        X_padded = pad_sequences(X, maxlen=maxlen, padding="pre")  # make every subseq the same length
+        y = np.array(y) 
 
         model = Sequential()
-        model.add(Embedding(input_dim=100000, output_dim=128, input_length=maxlen))
-        model.add(LSTM(64))
-        model.add(Dense(100000, activation="softmax"))
+        model.add(Embedding(input_dim=100000, output_dim=128, input_length=maxlen)) # meaning of words
+        model.add(LSTM(64)) # word "links", aka certain connected words, aka which words follow eachother
+        model.add(Dense(100000, activation="softmax")) # finds the right words in vocab (tokenizer.texts_to_sequences)
 
         model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 

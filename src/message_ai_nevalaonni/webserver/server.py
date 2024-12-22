@@ -1,4 +1,7 @@
 from flask import Flask, render_template
+import logging
+
+logger = logging.getLogger("ma")
 
 app = Flask(__name__)
 

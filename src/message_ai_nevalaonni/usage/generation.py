@@ -2,6 +2,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import os
 
 import pickle
 
@@ -9,7 +10,7 @@ class Generation:
     def __init__(self, model_path:str):
         self.model = load_model(model_path)
         self.model_path = model_path # used for bot statistics
-        with open(r"C:\Users\nevalaonni\Desktop\MessageAi\src\tokenizer.pkl", "rb") as f:
+        with open(os.getenv("TOKENIZER_PATH"), "rb") as f:
             self.tokenizer = pickle.load(f)
 
     def generate(self,seed:str, word_amount:int = 5):
@@ -29,4 +30,4 @@ class Generation:
         return seed
 
 if __name__ == "__main__":
-    print(Generation(r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5.new").generate("I love penis they are "))
+    print(Generation(r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5.new").generate(""))

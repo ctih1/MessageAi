@@ -5,7 +5,7 @@ import logging
 from data.discord.extraction import Extraction as dc
 from data.telegram.extraction import Extraction as tg
 
-logger = logging.getLogger("dma")
+logger = logging.getLogger("ma")
 logger.level = logging.DEBUG
 
 class Extractor:
@@ -13,14 +13,18 @@ class Extractor:
         self.file_location = file_location
         self.sentences = []
         self.kwargs = kwargs
+
     def extract(self,apps:dict):
         if "discord" in apps.keys():
-            self.sentences.append(dc(apps["discord"]).loop_over_folders().get_messages())
+            logger.info("Extracting data from discord package...")
+            self.sentences.extend(dc(apps["discord"]).loop_over_folders().get_messages())
+
         if "telegram" in apps.keys():
-            self.sentences.append(tg(apps["telegram"]).loop_over_folders(self.kwargs["author"]).get_messages())
+            logger.info("Extracting data from telegram package...")
+            self.sentences.extend(tg(apps["telegram"]).loop_over_folders(self.kwargs["author"]).get_messages())
         
-        with open("messages.txt2","w") as f:
-            json.dump(self.sentences[0],f)
+        with open("messages.txt","w") as f:
+            json.dump(self.sentences,f)
 
 
 
