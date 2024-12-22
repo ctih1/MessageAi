@@ -36,6 +36,7 @@ def assistant():
         print("You need atleast one of the following packages to contiue.")
         quit(1)
 
+tgu=None
     if tg:
         tgp = input("Enter the path to your telegram package. The folder you select should contain a result.json file")
         tgu = input("Enter your telegram name (NOT @username). This is used to identify your messages. ")
