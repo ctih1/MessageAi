@@ -8,6 +8,7 @@ import pickle
 class Generation:
     def __init__(self, model_path:str):
         self.model = load_model(model_path)
+        self.model_path = model_path # used for bot statistics
         with open(r"C:\Users\nevalaonni\Desktop\MessageAi\src\tokenizer.pkl", "rb") as f:
             self.tokenizer = pickle.load(f)
 

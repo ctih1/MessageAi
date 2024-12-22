@@ -1,6 +1,13 @@
 import discord
 import os
 from usage.generation import Generation
+import psutil
+import cpuinfo
+import tensorflow as tf
+import requests
+import platform
+from time import strftime, localtime
+from pathlib import Path
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -16,18 +23,67 @@ async def on_ready():
     generation = Generation(r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5.new")
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="The sound of fans spinning on the host server"))
 
-@bot.slash_command(description="Test")
-async def talk(ctx:discord.ApplicationContext, seed:str, max_word_amount:int):
+@bot.slash_command(
+        description="Generates a sentence based off of my (ctih) messages",
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        }
+    )       
+async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int):
     if(ctx.author.id != 642441889181728810):
         await ctx.respond("Haista vittu")
     await ctx.defer()
-    await ctx.respond(generation.generate(seed,max_word_amount))
+    await ctx.respond(generation.generate(seed,word_amount))
+
+@bot.slash_command(description="Gets information about the model")
+async def details(ctx):
+    cpu = cpuinfo.get_cpu_info()
+    embed = discord.Embed(
+        title="Host / model information",
+        description=f"Public IP: {requests.get('https://ipinfo.io/ip').text}"
+    )
+
+    model_date = None
+    model_size = None
+
+    if os.path.isdir(generation.model_path):
+        model_size = sum(f.stat().st_size for f in Path(generation.model_path).glob('**/*') if f.is_file())
+        latest_file = 0
+        for file in os.listdir(generation.model_path):
+            if platform.system() == "Windows":
+                date_mod = os.path.getctime(os.path.join(generation.model_path,file))
+            else:
+                date_mod = os.stat(os.path.join(generation.model_path,file)).st_ctime
+            latest_file = date_mod if latest_file < date_mod else latest_file
+        model_date = latest_file
+
+    else:
+        model_size = os.path.getsize(generation.model_path)
+        if platform.system() == "Windows":
+            date_mod = os.path.getctime(os.path.join(generation.model_path,file))
+        else:
+            date_mod = os.stat(os.path.join(generation.model_path,file))
+        model_date = date_mod
+
+    model_size = model_size / 1_000_000
+        
+    model_device = "GPU" if tf.test.is_gpu_available() else "CPU"
+    embed.add_field(name="CPU Model", value=cpu["brand_raw"], inline=False)
+    embed.add_field(name="RAM% Used by bot", value=round(psutil.Process(os.getpid()).memory_percent(),2), inline=False)
+    embed.add_field(name="Model ran on", value=model_device, inline=False)
+    embed.add_field(name="Model created on", value=strftime('%d.%m.%Y %H.%M', localtime(model_date)), inline=False)
+    embed.add_field(name="Model size", value=f"{round(model_size)}mb", inline=False)
+    embed.set_footer(text="Powered by TensorFlow")
+    embed.set_thumbnail(url="https://i.ibb.co/tps9qbN/image.png")
+    await ctx.respond(embed=embed)
 
 @bot.slash_command(description="Syncs commands")
 async def sync(ctx):
     if ctx.author.id != 642441889181728810:
         return
-    await ctx.bot.sync(guild=ctx.guild)
+    await bot.sync_commands()
+    await ctx.respond("Synced commands")
     return
 
 def start(token:str):
