@@ -45,7 +45,7 @@ def main():
         logger.error("Model path not defined in .env")
         return
     
-    logger.info("Compiling modell...")
+   # logger.info("Compiling model...")
 
 
     with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
@@ -58,11 +58,13 @@ def main():
 
     # Tools.compile_from_folder(os.getenv("MODEL_PATH"), "nevalaonni-w-tg.h5")
 
-    # Extractor("", author="Onni Nevala").extract({"discord":r"C:\Users\nevalaonni\Downloads","telegram":r"C:\Users\nevalaonni\Downloads\Telegram Desktop\DataExport_2024-12-21"})
+    #Extractor("", author="Onni Nevala").extract({"discord":r"C:\Users\nevalaonni\Downloads","telegram":r"C:\Users\nevalaonni\Downloads\Telegram Desktop\DataExport_2024-12-21"})
 
     if not os.getenv("TOKENIZER_PATH"):
         logger.error("Tokenizer path not defined in .env")
         return
+    
+    # Learning().train_based_off_sentences()
 
     bot.start(os.environ["BOT_TOKEN"])
 

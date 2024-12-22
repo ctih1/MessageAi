@@ -9,6 +9,7 @@ import platform
 from time import strftime, localtime
 from pathlib import Path
 import logging
+from ping3 import ping 
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -40,7 +41,13 @@ async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int):
     await ctx.defer()
     await ctx.respond(generation.generate(seed,word_amount))
 
-@bot.slash_command(description="Gets information about the model")
+@bot.slash_command(
+        description="Gets information about the model",
+        integration_types={
+            discord.IntegrationType.guild_install,
+            discord.IntegrationType.user_install,
+        }
+    )
 async def details(ctx):
     await ctx.defer()
     cpu = cpuinfo.get_cpu_info()
@@ -74,11 +81,13 @@ async def details(ctx):
     model_size = model_size / 1_000_000
         
     model_device = "GPU" if tf.test.is_gpu_available() else "CPU"
+    ram_percentage = psutil.Process(os.getpid()).memory_percent()
     embed.add_field(name="CPU Model", value=cpu["brand_raw"], inline=False)
-    embed.add_field(name="RAM% Used by bot", value=round(psutil.Process(os.getpid()).memory_percent(),2), inline=False)
+    embed.add_field(name="RAM Used by bot", value=f"{round(psutil.Process(os.getpid()).memory_info().rss / (1024**2),1)}mb", inline=False)
+    embed.add_field(name="Ping to frii.site headquarters (1,39€ server in Frankfurt)", value=f"{round(ping('vps.frii.site',timeout=3)*1000)}ms")
     embed.add_field(name="Model ran on", value=model_device, inline=False)
     embed.add_field(name="Model created on", value=strftime('%d.%m.%Y %H.%M', localtime(model_date)), inline=False)
-    embed.add_field(name="Model size", value=f"{round(model_size)}mb", inline=False)
+    embed.add_field(name="Model size", value=f"{round(model_size,1)}mb", inline=False)
     embed.set_footer(text="Powered by TensorFlow")
     embed.set_thumbnail(url="https://i.ibb.co/syT024V/image.png")
     await ctx.respond(embed=embed)
@@ -90,6 +99,7 @@ async def sync(ctx):
     await bot.sync_commands()
     await ctx.respond("Synced commands")
     return
+
 
 def start(token:str):
     bot.run(token)
