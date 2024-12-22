@@ -47,7 +47,7 @@ class Learning:
         model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 
         model.fit(X_padded, y, epochs=10, batch_size=64)
-        model.save("nevalaonni.h5") # save model for later use
+        model.save("model.h5") # save model for later use
 
         with open("tokenizer.pkl", "wb") as handle:  # save in case of emergency
             pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)

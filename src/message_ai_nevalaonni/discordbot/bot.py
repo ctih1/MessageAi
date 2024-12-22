@@ -5,6 +5,7 @@ import psutil
 import cpuinfo
 import tensorflow as tf
 import requests
+import time
 import platform
 from time import strftime, localtime
 from pathlib import Path
@@ -35,11 +36,15 @@ async def on_ready():
             discord.IntegrationType.user_install,
         }
     )       
-async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int):
+async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int, timings:bool=False):
+
+    start = time.time()
     if(ctx.author.id != 642441889181728810):
         await ctx.respond("Haista vittu")
     await ctx.defer()
-    await ctx.respond(generation.generate(seed,word_amount))
+    generated_sentence = generation.generate(seed,word_amount)
+
+    await ctx.respond(generated_sentence + f'\nGeneration took {round(time.time() - start,3)} seconds' if timings else '')
 
 @bot.slash_command(
         description="Gets information about the model",
@@ -53,7 +58,7 @@ async def details(ctx):
     cpu = cpuinfo.get_cpu_info()
     embed = discord.Embed(
         title="Host / model information",
-        description=f"Public IP: {requests.get('https://ipinfo.io/ip').text}, OS: { platform.system() if platform.system() != 'Darwin' else 'macOS' } {platform.release()}",
+        description=f"Public IP: {requests.get('https://ipinfo.io/ip').text}, OS: { platform.system() if platform.system() != 'Darwin' else 'macOS' } {platform.release() if platform.system() != 'Darwin' else platform.mac_ver()[0]}",
     )
 
     model_date = None
@@ -75,7 +80,7 @@ async def details(ctx):
         if platform.system() == "Windows":
             date_mod = os.path.getctime(os.path.join(generation.model_path))
         else:
-            date_mod = os.stat(os.path.join(generation.model_path))
+            date_mod = os.stat(os.path.join(generation.model_path)).st_ctime
         model_date = date_mod
 
     model_size = model_size / 1_000_000
