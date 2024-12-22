@@ -3,9 +3,8 @@ import logging
 
 logger = logging.getLogger("ma")
 class Tools:
-    def __init__():
-        pass
-    def compile_from_folder(self,folder_location:str, new_file_name:str):
+    @staticmethod
+    def save_from_folder(folder_location:str, new_file_name:str):
         if not new_file_name.endswith(".h5"):
             logger.warning("Models that are compiled as models need to have the h5 file extension")
             return False

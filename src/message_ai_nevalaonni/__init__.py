@@ -1,4 +1,5 @@
 from usage.generation import Generation
+from usage.tools import Tools
 from learning.learning import Learning
 from data.extractor import Extractor
 from webserver import server
@@ -44,7 +45,20 @@ def main():
         logger.error("Model path not defined in .env")
         return
     
-    os
+    logger.info("Compiling modell...")
+
+
+    with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
+        tokenizer = pickle.load(f)
+
+    #with open(r"C:\Users\nevalaonni\Desktop\MessageAi\messages.txt","r") as f:
+    #    sentences = json.load(f)
+ 
+    # Learning().continious_training_start(tokenizer,os.getenv("MODEL_PATH"),7,sentences)
+
+    # Tools.compile_from_folder(os.getenv("MODEL_PATH"), "nevalaonni-w-tg.h5")
+
+    # Extractor("", author="Onni Nevala").extract({"discord":r"C:\Users\nevalaonni\Downloads","telegram":r"C:\Users\nevalaonni\Downloads\Telegram Desktop\DataExport_2024-12-21"})
 
     if not os.getenv("TOKENIZER_PATH"):
         logger.error("Tokenizer path not defined in .env")

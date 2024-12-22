@@ -74,6 +74,24 @@ class Learning:
         model.save(model_path + ".new")
 
 
+    def continious_training_start(self,tokenizer,model_path:str, iterations:int, sentences:list, new_model_path:str = "new_trained_model.h5") -> None:
+        sequences= tokenizer.texts_to_sequences(sentences)
+        X = []
+        y = []
+        for seq in sequences:
+            for i in range(1, len(seq)):
+                X.append(seq[:i])
+                y.append(seq[i])
+
+        maxlen = max([len(x) for x in X])
+        X_padded = pad_sequences(X, maxlen=maxlen, padding="pre")
+        y = np.array(y)
+
+        model = load_model(model_path)
+        model.fit(X_padded, y, epochs=iterations,batch_size=64, validation_data=(X_padded, y)) # tweak batch_size according to ram size and gpu power
+        model.save(new_model_path)
+
+
 if __name__ == "__main__":
     with open("messages.txt","r") as f:
         a = np.array(json.load(f))

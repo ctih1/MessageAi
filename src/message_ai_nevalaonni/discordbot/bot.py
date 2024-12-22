@@ -66,9 +66,9 @@ async def details(ctx):
     else:
         model_size = os.path.getsize(generation.model_path)
         if platform.system() == "Windows":
-            date_mod = os.path.getctime(os.path.join(generation.model_path,file))
+            date_mod = os.path.getctime(os.path.join(generation.model_path))
         else:
-            date_mod = os.stat(os.path.join(generation.model_path,file))
+            date_mod = os.stat(os.path.join(generation.model_path))
         model_date = date_mod
 
     model_size = model_size / 1_000_000
@@ -80,7 +80,7 @@ async def details(ctx):
     embed.add_field(name="Model created on", value=strftime('%d.%m.%Y %H.%M', localtime(model_date)), inline=False)
     embed.add_field(name="Model size", value=f"{round(model_size)}mb", inline=False)
     embed.set_footer(text="Powered by TensorFlow")
-    embed.set_thumbnail(url="https://i.ibb.co/tps9qbN/image.png")
+    embed.set_thumbnail(url="https://i.ibb.co/syT024V/image.png")
     await ctx.respond(embed=embed)
 
 @bot.slash_command(description="Syncs commands")
