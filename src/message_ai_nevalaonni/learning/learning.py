@@ -17,8 +17,6 @@ logger = logging.getLogger("ma")
 
 class Learning:
     def __init__(self):
-        print("Available devices:")
-        print(device_lib.list_local_devices())
         pass
 
     def train_based_off_sentences(self,sentences:list):
@@ -46,7 +44,7 @@ class Learning:
 
         model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 
-        model.fit(X_padded, y, epochs=10, batch_size=64)
+        model.fit(X_padded, y, epochs=1, batch_size=64) # CHANGE BACK AFTER TESTING
         model.save("model.h5") # save model for later use
 
         with open("tokenizer.pkl", "wb") as handle:  # save in case of emergency
@@ -88,7 +86,7 @@ class Learning:
         y = np.array(y)
 
         model = load_model(model_path)
-        model.fit(X_padded, y, epochs=iterations,batch_size=64, validation_data=(X_padded, y)) # tweak batch_size according to ram size and gpu power
+        model.fit(X_padded, y, epochs=iterations,batch_size=64, validation_data=(X_padded, y)) 
         model.save(new_model_path)
 
 

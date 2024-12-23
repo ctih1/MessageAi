@@ -1,10 +1,11 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 from usage.generation import Generation
 from usage.tools import Tools
 from learning.learning import Learning
 from data.extractor import Extractor
 from webserver import server
 from discordbot import bot
-import os
 import tensorflow as tf
 from dotenv import load_dotenv
 import pickle
@@ -13,6 +14,7 @@ import logging
 import sys
 import time
 import json
+from time import strftime, localtime
 import sys
 
 
@@ -32,15 +34,17 @@ def assistant():
     tg = b(input("Do you have a telegram data package downloaded? (yes/no): "))
     dc = b(input("Do you have a discord data package downloaded? (yes/no): "))
 
-    if not dc or tg:
+    if not dc and not tg:
         print("You need atleast one of the following packages to contiue.")
         quit(1)
 
+    tgu = "" # if one isn't specified
+
     if tg:
-        tgp = input("Enter the path to your telegram package. The folder you select should contain a result.json file")
+        tgp = input("Enter the path to your telegram package. The folder you select should contain a result.json file ")
         tgu = input("Enter your telegram name (NOT @username). This is used to identify your messages. ")
     if dc:
-        dcp = input("Enter the path to your discord package. The folder you select should contain a messages folder")
+        dcp = input("Enter the path to your discord package. The folder you select should contain a messages folder ")
 
     print("Beginning data extraction...")
 
@@ -66,11 +70,13 @@ def assistant():
         
 
     if not tf.test.is_gpu_available():
-        print("WARNING: The AI could not find a suitable GPU. Do you want to continue with CPU based learning?")
-        print("Note: usually installing NVIDIA CUDNN 8.1 and CUDA Toolkit 11.2 solves this issue")
+        print("WARNING: TensorFlow could not find a suitable GPU. Do you want to continue with CPU based learning?")
+        print("Note: If you have a CUDA compatible Graphics Card, usually installing NVIDIA CUDNN 8.1 and CUDA Toolkit 11.2 solves this issue")
         if not b(input("Continue with CPU based learning? (yes/no): ")):
             print("Have a nice day")
             quit(1)
+        if b(input("Do you want to reduce the model quality for a faster training time? (yes/no): ")):
+            pass
         
     
     print("Starting AI learning... This might take a bit. Do not turn off your computer!")
@@ -80,7 +86,7 @@ def assistant():
     print("Initial model created...")
 
     if not b(input("First model finished! Do you want to keep training the AI? (yes/no): ")):
-        env_path = os.path.join(os.curdir, "..", ".env")
+        env_path = os.path.join(os.curdir, ".env")
 
         set_key(dotenv_path=env_path,key_to_set="MODEL_PATH", value_to_set=os.path.join(os.curdir, "model.h5"))
         set_key(dotenv_path=env_path,key_to_set="TOKENIZER_PATH", value_to_set=os.path.join(os.curdir, "tokenizer.pkl"))
@@ -88,6 +94,51 @@ def assistant():
         print("AI Configuration succesfull! Please relaunch this program to start up the bot")
         quit(0)
 
+    print("Starting continious training...")
+
+    iterations = int(input("How many iterations would you like? More = better. Default: 7\n"))
+
+    Learning().continious_training_start(os.getenv("TOKENIZER_PATH"), "model.h5", iterations,sentences, "more_learned.h5")
+
+    if b(print("Continious training done! Do you wish to delete the old model? (yes/no): ")):
+        os.remove("model.h5")
+
+    set_key(dotenv_path=env_path,key_to_set="MODEL_PATH", value_to_set=os.path.join(os.curdir, "more_learned.h5"))
+    set_key(dotenv_path=env_path,key_to_set="TOKENIZER_PATH", value_to_set=os.path.join(os.curdir, "tokenizer.pkl"))
+
+    print("AI Configuration succesfull! Please relaunch this program to start up the bot")
+
+def find_models() -> list:
+    models: list = []
+    for file in os.listdir():
+        if file.endswith(".h5"):
+            models.append(
+                {file:strftime('%d.%m.%Y %H.%M', localtime(os.stat(file).st_ctime))}
+            )
+    return models
+
+
+def add_training(type:str):
+        with open(os.getenv("TOKENIZER_PATH")) as f:
+            tokenizer = pickle.load(f)
+        try:
+            with open("messages.txt","r", encoding="UTF-8") as f:
+                sentences = json.load(f)
+        except FileNotFoundError:
+            location = input("Could not find messages.txt. Please provide the file path: ")
+            with open(location,"r") as f:
+                sentences = json.load(f)
+
+        iterations = int(input("How many iterations would you like? More iterations make a better model, but will increase training time. Default: 7\n"))
+        
+        print("Available models: ")
+        for model,index in enumerate(find_models()):
+            print(f"{index}. {model.keys()[0]}: {model.values()[0]}")
+
+        if type=="retrain":
+             Learning().continious_training_start(tokenizer, "model.h5", iterations,sentences, "more_learned.h5")
+        elif type=="addition":
+            Learning().add_training_to_model(tokenizer, "")
 
 
 def main():                                                             
@@ -98,7 +149,7 @@ def main():
         #valid = Extractor(loc).valid
 
     #with open(r"C:\Users\nevalaonni\Desktop\MessageAi\src\tokenizer.pkl", "rb") as f:
-    #    tokenizer = pickle.load(f)
+    #    
 
     #with open(r"C:\Users\nevalaonni\Desktop\MessageAi\messages.txt2", "r") as f:
     #    new_sentences = json.load(f)
@@ -108,8 +159,23 @@ def main():
     #return
     #server.app.run("0.0.0.0",8080,use_reloader=False)
 
-    if sys.argv[1] == "-easy-setup":
+    if len(sys.argv) >= 1:
+        sys.argv.extend(["none","none","none","none"])
+
+    if sys.argv[1] == "--easy-setup":
         assistant()
+
+    if sys.argv[1] == "--cont-training":
+        add_training("retrain")
+
+    if sys.argv[1] == "--add-training":
+        add_training("addition")
+
+    # add_training("retrain")
+       
+       
+
+
 
     logging.StreamHandler(sys.stdout)
     logger = logging.getLogger("ma")

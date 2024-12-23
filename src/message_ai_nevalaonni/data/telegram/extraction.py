@@ -59,7 +59,7 @@ class Extraction:
             logger.debug("Iterating over chats")
 
             if chat.get("name") is None: # chat[name] might itself be null, since saved messages
-                logger.warning("Chat has no name. If you have the 'saved messages' feature turned on, you can safely ignore this error.")
+                tqdm.write("Chat has no name. If you have the 'saved messages' feature turned on, you can safely ignore this error.")
                 continue
 
             if chat.get("type") == "bot_chat": 
