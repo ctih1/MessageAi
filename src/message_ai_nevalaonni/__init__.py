@@ -24,7 +24,7 @@ load_dotenv()
 
 DEFAULT_FIRST_TIME_ITERATIONS:int = 10
 BATCH_SIZE = int(os.getenv("BATCH_SIZE") or 64)
-
+env_path = os.path.join(os.curdir, ".env")
 def b(a:str) -> bool:
     if a.lower() == "yes":
         return True
@@ -32,42 +32,43 @@ def b(a:str) -> bool:
         return False
     return None
 
-def assistant():
+def assistant(skip_extraction:bool=False):
     total_mem_gb = print(round(psutil.virtual_memory().total / (1024**3)))         
     iterations = DEFAULT_FIRST_TIME_ITERATIONS
     batch_size = 64
     print("Hello! Let's start training an AI for you")
-    tg = b(input("Do you have a telegram data package downloaded? (yes/no): "))
-    dc = b(input("Do you have a discord data package downloaded? (yes/no): "))
 
-    if not dc and not tg:
-        print("You need atleast one of the following packages to contiue.")
-        quit(1)
+    if skip_extraction:
+        print("Skipping data extraction")
 
+        message_file = input("Enter the path to messages.txt (list of sentences): ")
 
-    tgu = "" # if one isn't specified
+        with open(message_file,"r") as f:
+            sentences = json.load(f)
+    else:
+        tg = b(input("Do you have a telegram data package downloaded? (yes/no): "))
+        dc = b(input("Do you have a discord data package downloaded? (yes/no): "))
+        if not dc and not tg:
+            print("You need atleast one of the following packages to contiue.")
+            quit(1)
+        tgu = "" # if one isn't specified
+        if tg:
+            tgp = input("Enter the path to your telegram package. The folder you select should contain a result.json file ")
+            tgu = input("Enter your telegram name (NOT @username). This is used to identify your messages. ")
+        if dc:
+            dcp = input("Enter the path to your discord package. The folder you select should contain a messages folder ")
+        print("Beginning data extraction...")
+        extract_args = {}
+        if tg:
+            extract_args["telegram"] = tgp
+        if dc:
+            extract_args["discord"] = dcp
+        Extractor("",author=tgu).extract(extract_args)
 
-    if tg:
-        tgp = input("Enter the path to your telegram package. The folder you select should contain a result.json file ")
-        tgu = input("Enter your telegram name (NOT @username). This is used to identify your messages. ")
-    if dc:
-        dcp = input("Enter the path to your discord package. The folder you select should contain a messages folder ")
+        print("Data succesfully extracted!")
 
-    print("Beginning data extraction...")
-
-    extract_args = {}
-
-    if tg:
-        extract_args["telegram"] = tgp
-    if dc:
-        extract_args["discord"] = dcp
-
-    Extractor("",author=tgu).extract(extract_args)
-
-    print("Data succesfully extracted!")
-
-    with open("messages.txt","r") as f:
-        sentences = json.load(f)
+        with open("messages.txt","r") as f:
+            sentences = json.load(f)
 
     if len(sentences) < 50000:
         print("Small sample size detected. It looks like you have less than 50k sentences, which might make the AI less accurate. Do you want to continue?")
@@ -198,7 +199,7 @@ def main():
         sys.argv.extend(["none","none","none","none"])
 
     if sys.argv[1] == "--easy-setup":
-        assistant()
+        assistant(sys.argv[2] == "--skip-extract")
 
     if sys.argv[1] == "--cont-training":
         add_training("retrain")
@@ -206,7 +207,22 @@ def main():
     if sys.argv[1] == "--add-training":
         add_training("addition")
 
-    env_path = os.path.join(os.curdir, ".env")
+    if sys.argv[1] == "--evaluate":
+        with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
+            tokenizer = pickle.load(f)
+
+        with open("messages.txt","r") as f:
+            sentences = json.load(f)
+
+        print("Available models: ")
+        for index, model in enumerate(find_models(),1):
+            print(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
+
+        model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
+        model=str(list(find_models()[model_index].keys())[0])
+
+        print(Tools.evaluate(model, tokenizer, sentences))
+        quit(0)
 
 
     logging.StreamHandler(sys.stdout)

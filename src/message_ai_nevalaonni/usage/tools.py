@@ -1,5 +1,7 @@
 from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 import logging
+import numpy as np
 
 logger = logging.getLogger("ma")
 class Tools:
@@ -11,3 +13,21 @@ class Tools:
         model = load_model(folder_location)
         model.save(new_file_name)
         return True
+
+    @staticmethod
+    def evaluate(model_path,tokenizer, sentences):
+        sequences = tokenizer.texts_to_sequences(sentences)
+        X = []
+        y = []
+        for seq in sequences:
+            for i in range(1, len(seq)):
+                X.append(seq[:i])
+                y.append(seq[i])
+
+        X = pad_sequences(X,maxlen=379, padding="pre")
+        y = np.array(y)
+
+        model = load_model(model_path)
+        l, accuracy = model.evaluate(X,y)
+
+        return accuracy

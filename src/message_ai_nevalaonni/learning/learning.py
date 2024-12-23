@@ -92,6 +92,9 @@ class Learning:
         y = np.array(y)
 
         model = load_model(model_path)
-        model.fit(X_padded, y, epochs=iterations,batch_size=self.batch_size, validation_data=(X_padded, y)) 
+        try:
+            model.fit(X_padded, y, epochs=iterations,batch_size=self.batch_size, validation_data=(X_padded, y)) 
+        except KeyboardInterrupt:
+            model.save("BACKUP_INTERRUPTED_MODEL.h5")
         model.save(new_model_path)
 
