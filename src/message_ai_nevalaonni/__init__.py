@@ -23,7 +23,7 @@ from dotenv import set_key
 load_dotenv()
 
 DEFAULT_FIRST_TIME_ITERATIONS:int = 10
-BATCH_SIZE = int(os.getenv("BATCH_SIZE")) or 64
+BATCH_SIZE = int(os.getenv("BATCH_SIZE") or 64)
 
 def b(a:str) -> bool:
     if a.lower() == "yes":

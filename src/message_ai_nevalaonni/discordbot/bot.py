@@ -39,12 +39,10 @@ async def on_ready():
 async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int, timings:bool=False):
 
     start = time.time()
-    if(ctx.author.id != 642441889181728810):
-        await ctx.respond("Haista vittu")
     await ctx.defer()
     generated_sentence = generation.generate(seed,word_amount)
-
-    await ctx.respond(generated_sentence + f'\nGeneration took {round(time.time() - start,3)} seconds' if timings else '')
+    a = f'\nGeneration took {round(time.time() - start,3)} seconds' if timings else ''
+    await ctx.respond(generated_sentence + a)
 
 @bot.slash_command(
         description="Gets information about the model",
