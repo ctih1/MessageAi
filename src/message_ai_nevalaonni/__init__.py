@@ -206,9 +206,6 @@ def main():
     if sys.argv[1] == "--add-training":
         add_training("addition")
 
-
-    batch_size = int(os.getenv("BATCH_SIZE"))
-
     env_path = os.path.join(os.curdir, ".env")
 
 
