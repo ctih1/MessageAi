@@ -15,9 +15,11 @@ import logging
 from time import strftime, localtime
 
 logger = logging.getLogger("ma")
+BATCH_SIZE = 64
 
 class Learning:
-    def __init__(self):
+    def __init__(self, batch_size:int=64):
+        self.batch_size = batch_size
         pass
 
     def train_based_off_sentences(self,sentences:list, iterations=10):
@@ -45,7 +47,7 @@ class Learning:
 
         model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 
-        model.fit(X_padded, y, epochs=iterations, batch_size=64) # CHANGE BACK AFTER TESTING
+        model.fit(X_padded, y, epochs=iterations, batch_size=self.batch_size)
         model.save("model.h5") # save model for later use
 
         with open("tokenizer.pkl", "wb") as handle:  # save in case of emergency
@@ -67,7 +69,7 @@ class Learning:
         X_padded = pad_sequences(X, maxlen=379, padding="pre")
         y = np.array(y)
 
-        history = model.fit(X_padded, y, epochs=8, validation_data=(X_padded, y))
+        history = model.fit(X_padded, y, epochs=8, validation_data=(X_padded, y), batch_size=self.batch_size)
         checkpoint = ModelCheckpoint("nevalaonni_checkpoint.h5",save_best_only=True, monitor="val_loss", verbose=1)
 
         model.save(model_path + ".new")
@@ -86,15 +88,10 @@ class Learning:
                 y.append(seq[i])
 
         maxlen = max([len(x) for x in X])
-        X_padded = pad_sequences(X, maxlen=maxlen, padding="pre")
+        X_padded = pad_sequences(X, maxlen=379, padding="pre")
         y = np.array(y)
 
         model = load_model(model_path)
-        model.fit(X_padded, y, epochs=iterations,batch_size=64, validation_data=(X_padded, y)) 
+        model.fit(X_padded, y, epochs=iterations,batch_size=self.batch_size, validation_data=(X_padded, y)) 
         model.save(new_model_path)
 
-
-if __name__ == "__main__":
-    with open("messages.txt","r") as f:
-        a = np.array(json.load(f))
-    Learning().train_based_off_sentences(a)

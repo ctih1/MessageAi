@@ -16,13 +16,14 @@ import time
 import json
 from time import strftime, localtime
 import sys
-
-
+import psutil
+tf.config.optimizer.set_jit(True)
 from dotenv import set_key
 
 load_dotenv()
 
 DEFAULT_FIRST_TIME_ITERATIONS:int = 10
+BATCH_SIZE = int(os.getenv("BATCH_SIZE")) or 64
 
 def b(a:str) -> bool:
     if a.lower() == "yes":
@@ -32,7 +33,9 @@ def b(a:str) -> bool:
     return None
 
 def assistant():
+    total_mem_gb = print(round(psutil.virtual_memory().total / (1024**3)))         
     iterations = DEFAULT_FIRST_TIME_ITERATIONS
+    batch_size = 64
     print("Hello! Let's start training an AI for you")
     tg = b(input("Do you have a telegram data package downloaded? (yes/no): "))
     dc = b(input("Do you have a discord data package downloaded? (yes/no): "))
@@ -40,6 +43,7 @@ def assistant():
     if not dc and not tg:
         print("You need atleast one of the following packages to contiue.")
         quit(1)
+
 
     tgu = "" # if one isn't specified
 
@@ -81,7 +85,6 @@ def assistant():
         if b(input("Do you want to reduce the model quality for a faster training time? (yes/no): ")):
             iterations = 8
     else:
-
         gpu_details = tf.config.experimental.get_device_details(tf.config.list_physical_devices("GPU")[0])
         print(f"Found GPU {gpu_details.get('device_name','Unkown')}, which will be used for training...")
         compute_capability = float(f"{gpu_details.get('compute_capability',0)[0]}.{gpu_details.get('compute_capability',0)[1]}")
@@ -110,6 +113,8 @@ def assistant():
         
     if b(input(f"Current iterations selected: {iterations} Do you wish to override this value? Do not change unless you know what you're doing. Override? (yes/no): ")):
         iterations = int(input("How many iterations do you want to run? "))
+        
+
 
 
     print("Starting training... This will take a bit. Do not turn off your computer!")
@@ -188,24 +193,7 @@ def add_training(type_:str):
 
             Learning().add_training_to_model(tokenizer,model,new_sentences)
 
-def main():                                                             
-    # loc:str = input("Enter location of your discord data request: ")
-    #valid = Extractor(loc).valid
-    #while not valid:
-        #loc:str = input("Invalid path! Enter a suitable path.")
-        #valid = Extractor(loc).valid
-
-    #with open(r"C:\Users\nevalaonni\Desktop\MessageAi\src\tokenizer.pkl", "rb") as f:
-    #    
-
-    #with open(r"C:\Users\nevalaonni\Desktop\MessageAi\messages.txt2", "r") as f:
-    #    new_sentences = json.load(f)
-
-    #Learning().add_training_to_model(tokenizer,r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5",new_sentences)
-
-    #return
-    #server.app.run("0.0.0.0",8080,use_reloader=False)
-
+def main():                                           
     if len(sys.argv) >= 1:
         sys.argv.extend(["none","none","none","none"])
 
@@ -219,6 +207,7 @@ def main():
         add_training("addition")
 
 
+    batch_size = int(os.getenv("BATCH_SIZE"))
 
     env_path = os.path.join(os.curdir, ".env")
 
@@ -247,20 +236,9 @@ def main():
     with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
         tokenizer = pickle.load(f)
 
-    #with open(r"C:\Users\nevalaonni\Desktop\MessageAi\messages.txt","r") as f:
-    #    sentences = json.load(f)
- 
-    # Learning().continious_training_start(tokenizer,os.getenv("MODEL_PATH"),7,sentences)
-
-    # Tools.compile_from_folder(os.getenv("MODEL_PATH"), "nevalaonni-w-tg.h5")
-
-    #Extractor("", author="Onni Nevala").extract({"discord":r"C:\Users\nevalaonni\Downloads","telegram":r"C:\Users\nevalaonni\Downloads\Telegram Desktop\DataExport_2024-12-21"})
-
     if not os.getenv("TOKENIZER_PATH"):
         logger.error("Tokenizer path not defined in .env")
         return
-    
-    # Learning().train_based_off_sentences()
 
     bot.start(os.environ["BOT_TOKEN"])
 
