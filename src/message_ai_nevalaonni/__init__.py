@@ -116,8 +116,6 @@ def assistant(skip_extraction:bool=False):
         iterations = int(input("How many iterations do you want to run? "))
         
 
-
-
     print("Starting training... This will take a bit. Do not turn off your computer!")
 
     Learning().train_based_off_sentences(sentences,iterations)

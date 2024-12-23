@@ -66,7 +66,7 @@ class Learning:
 
         print("model init")
 
-        X_padded = pad_sequences(X, maxlen=379, padding="pre")
+        X_padded = pad_sequences(X, maxlen=model.layers[0].input_shape[1], padding="pre")
         y = np.array(y)
 
         history = model.fit(X_padded, y, epochs=8, validation_data=(X_padded, y), batch_size=self.batch_size)
@@ -87,11 +87,10 @@ class Learning:
                 X.append(seq[:i])
                 y.append(seq[i])
 
-        maxlen = max([len(x) for x in X])
-        X_padded = pad_sequences(X, maxlen=379, padding="pre")
+        model = load_model(model_path)
+        X_padded = pad_sequences(X, maxlen=model.layers[0].input_shape[1], padding="pre")
         y = np.array(y)
 
-        model = load_model(model_path)
         try:
             model.fit(X_padded, y, epochs=iterations,batch_size=self.batch_size, validation_data=(X_padded, y)) 
         except KeyboardInterrupt:

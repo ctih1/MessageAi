@@ -19,15 +19,17 @@ class Tools:
         sequences = tokenizer.texts_to_sequences(sentences)
         X = []
         y = []
+
+        model = load_model(model_path)
+        
         for seq in sequences:
             for i in range(1, len(seq)):
                 X.append(seq[:i])
                 y.append(seq[i])
 
-        X = pad_sequences(X,maxlen=379, padding="pre")
+        X = pad_sequences(X,maxlen=model.layers[0].input_shape[1], padding="pre")
         y = np.array(y)
 
-        model = load_model(model_path)
         l, accuracy = model.evaluate(X,y)
 
         return accuracy
