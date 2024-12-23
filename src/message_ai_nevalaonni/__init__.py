@@ -219,7 +219,6 @@ def main():
         add_training("addition")
 
 
-    assistant()
 
     env_path = os.path.join(os.curdir, ".env")
 
