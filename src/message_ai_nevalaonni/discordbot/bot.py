@@ -85,9 +85,13 @@ async def details(ctx):
 
     model_size = model_size / 1_000_000
         
+    gpu_name = None
+    
     model_device = "GPU" if tf.test.is_gpu_available() else "CPU"
+    if model_device == "GPU": gpu_name = tf.config.experimental.get_device_details(tf.config.list_physical_devices("GPU")[0]).get("device_name","Unkown GPU")
     ram_percentage = psutil.Process(os.getpid()).memory_percent()
     embed.add_field(name="CPU Model", value=cpu["brand_raw"], inline=False)
+    if gpu_name: embed.add_field(name="GPU Model", value=gpu_name)
     embed.add_field(name="RAM Used by bot", value=f"{round(psutil.Process(os.getpid()).memory_info().rss / (1024**2),1)}mb", inline=False)
     embed.add_field(name="Ping to frii.site headquarters (1,39€ server in Frankfurt)", value=f"{round(ping('vps.frii.site',timeout=3)*1000)}ms")
     embed.add_field(name="Model ran on", value=model_device, inline=False)

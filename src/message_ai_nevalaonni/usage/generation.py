@@ -1,4 +1,5 @@
 import numpy as np
+print("Loading TensorFlow library... This might take a bit")
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
