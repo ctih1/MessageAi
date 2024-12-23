@@ -22,6 +22,8 @@ from dotenv import set_key
 
 load_dotenv()
 
+DEFAULT_FIRST_TIME_ITERATIONS:int = 10
+
 def b(a:str) -> bool:
     if a.lower() == "yes":
         return True
@@ -30,6 +32,7 @@ def b(a:str) -> bool:
     return None
 
 def assistant():
+    iterations = DEFAULT_FIRST_TIME_ITERATIONS
     print("Hello! Let's start training an AI for you")
     tg = b(input("Do you have a telegram data package downloaded? (yes/no): "))
     dc = b(input("Do you have a discord data package downloaded? (yes/no): "))
@@ -76,12 +79,42 @@ def assistant():
             print("Have a nice day")
             quit(1)
         if b(input("Do you want to reduce the model quality for a faster training time? (yes/no): ")):
-            pass
-        
-    
-    print("Starting AI learning... This might take a bit. Do not turn off your computer!")
+            iterations = 8
+    else:
 
-    Learning().train_based_off_sentences(sentences)
+        gpu_details = tf.config.experimental.get_device_details(tf.config.list_physical_devices("GPU")[0])
+        print(f"Found GPU {gpu_details.get('device_name','Unkown')}, which will be used for training...")
+        compute_capability = float(f"{gpu_details.get('compute_capability',0)[0]}.{gpu_details.get('compute_capability',0)[1]}")
+
+        if compute_capability > 8.5: # rtx 3090(ti), 4060ti, 4070ti and higher
+            if b(input("Looks like your GPU is very powerful. Would you like to increase the model qualiy in exchange for longer learning time? (yes/no): ")):
+                iterations = 20
+        elif compute_capability > 7.5:  # rtx 20- series cards, and 1650ti
+            if b(input("Looks like your GPU is powerful. Would you like to increase the model qualiy in exchange for longer learning time? (yes/no): ")):
+                iterations = 17
+        elif compute_capability > 7:
+            if b(input("Looks like your GPU is above average in matrix multiplication. Would you like to increase the model qualiy in exchange for longer learning time? (yes/no): ")):
+                iterations = 17
+        elif compute_capability > 6:
+            print("GPU Power normal... Not changing model quality")
+
+        elif compute_capability > 5:
+            if b(input("Looks like your GPU is below average in matrix multiplication. Would you like to decrease the model qualiy in exchange for shorter learning time? (yes/no): ")):
+                iterations = 8
+        elif compute_capability > 3:
+            if b(input("Looks like your GPU is not good in matrix multiplication. Would you like to decrease the model qualiy in exchange for shorter learning time? (yes/no): ")):
+                iterations = 6
+        elif compute_capability > 2:
+            if b(input("Looks like your GPU is bad in matrix multiplication. Would you like to decrease the model qualiy in exchange for shorter learning time? (yes/no): ")):
+                iterations = 4
+        
+    if b(input(f"Current iterations selected: {iterations} Do you wish to override this value? Do not change unless you know what you're doing. Override? (yes/no): ")):
+        iterations = int(input("How many iterations do you want to run? "))
+
+
+    print("Starting training... This will take a bit. Do not turn off your computer!")
+
+    Learning().train_based_off_sentences(sentences,iterations)
 
     print("Initial model created...")
 
@@ -115,11 +148,12 @@ def find_models() -> list:
             models.append(
                 {file:strftime('%d.%m.%Y %H.%M', localtime(os.stat(file).st_ctime))}
             )
+    models.sort(key=lambda x:list(x.values())[0])
     return models
 
 
-def add_training(type:str):
-        with open(os.getenv("TOKENIZER_PATH")) as f:
+def add_training(type_:str):
+        with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
             tokenizer = pickle.load(f)
         try:
             with open("messages.txt","r", encoding="UTF-8") as f:
@@ -132,14 +166,27 @@ def add_training(type:str):
         iterations = int(input("How many iterations would you like? More iterations make a better model, but will increase training time. Default: 7\n"))
         
         print("Available models: ")
-        for model,index in enumerate(find_models()):
-            print(f"{index}. {model.keys()[0]}: {model.values()[0]}")
+        for index, model in enumerate(find_models(),1):
+            print(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
 
-        if type=="retrain":
-             Learning().continious_training_start(tokenizer, "model.h5", iterations,sentences, "more_learned.h5")
-        elif type=="addition":
-            Learning().add_training_to_model(tokenizer, "")
+        model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
+        model=str(list(find_models()[model_index].keys())[0])
 
+        if type_=="retrain":
+            Learning().continious_training_start(tokenizer,model,iterations,sentences)
+
+        if type_ == "addition":
+            new_sentences_path = input("Enter the path to your new sentences: ")
+
+            try:
+                with open(new_sentences_path,"r") as f:
+                    new_sentences = json.load(f)
+            except FileNotFoundError:
+                print(f"Could not find file {new_sentences_path}.")
+            except json.JSONDecodeError:
+                print("Failed to decode JSON. Please make sure your file contains a list of sentences.")
+
+            Learning().add_training_to_model(tokenizer,model,new_sentences)
 
 def main():                                                             
     # loc:str = input("Enter location of your discord data request: ")
@@ -171,10 +218,10 @@ def main():
     if sys.argv[1] == "--add-training":
         add_training("addition")
 
-    # add_training("retrain")
-       
-       
 
+    assistant()
+
+    env_path = os.path.join(os.curdir, ".env")
 
 
     logging.StreamHandler(sys.stdout)
@@ -185,7 +232,11 @@ def main():
 
     if not os.getenv("BOT_TOKEN"):
         logger.error("Discord bot token not defined in .env")
-        return
+        token = input("No discord bot token provided. Go to https://discord.com/developers/applications to get your bot token.\n Input your bot token: ")
+        if len(token) != 72:
+            print("Invalid token format! not applying changes")
+            quit(1)
+        set_key(dotenv_path=env_path,key_to_set="BOT_TOKEN", value_to_set=token)
 
     if not os.getenv("MODEL_PATH"):
         logger.error("Model path not defined in .env")

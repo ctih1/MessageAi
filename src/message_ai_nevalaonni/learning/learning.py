@@ -12,6 +12,7 @@ import json
 import numpy as np
 import pickle
 import logging
+from time import strftime, localtime
 
 logger = logging.getLogger("ma")
 
@@ -19,7 +20,7 @@ class Learning:
     def __init__(self):
         pass
 
-    def train_based_off_sentences(self,sentences:list):
+    def train_based_off_sentences(self,sentences:list, iterations=10):
         tokenizer = Tokenizer()
         tokenizer.fit_on_texts(sentences)
         sequences = tokenizer.texts_to_sequences(sentences) # builds a vocab based off of sentences
@@ -44,7 +45,7 @@ class Learning:
 
         model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 
-        model.fit(X_padded, y, epochs=1, batch_size=64) # CHANGE BACK AFTER TESTING
+        model.fit(X_padded, y, epochs=iterations, batch_size=64) # CHANGE BACK AFTER TESTING
         model.save("model.h5") # save model for later use
 
         with open("tokenizer.pkl", "wb") as handle:  # save in case of emergency
@@ -72,7 +73,10 @@ class Learning:
         model.save(model_path + ".new")
 
 
-    def continious_training_start(self,tokenizer,model_path:str, iterations:int, sentences:list, new_model_path:str = "new_trained_model.h5") -> None:
+    def continious_training_start(self,tokenizer,model_path:str, iterations:int, sentences:list, new_model_path:str = None) -> None:
+        if new_model_path == None:
+            new_model_path = f"model-{strftime('%d_%m_%Y-%H_%M', localtime())}.h5"
+
         sequences= tokenizer.texts_to_sequences(sentences)
         X = []
         y = []
