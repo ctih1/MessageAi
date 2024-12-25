@@ -1,11 +1,12 @@
 import tensorflow as tf
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, LSTM, Dense
+from tensorflow import keras
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from keras.models import Sequential
+from keras.layers import Embedding, LSTM, Dense
 from tensorflow.python.client import device_lib
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.models import load_model
+from keras.callbacks import ModelCheckpoint
+from keras.models import load_model
 import random
 import os
 import json

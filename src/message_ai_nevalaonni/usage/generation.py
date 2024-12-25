@@ -1,9 +1,10 @@
 import numpy as np
 print("Loading TensorFlow library... This might take a bit")
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.backend import clear_session
+from tensorflow import keras
+from keras.models import load_model
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from keras.backend import clear_session
 import tensorflow as tf
 import os
 
@@ -20,6 +21,8 @@ class Generation:
         for _ in range(word_amount):
             token_list = self.tokenizer.texts_to_sequences([seed])[0]
             token_list = pad_sequences([token_list], maxlen=self.model.layers[0].input_shape[1], padding="pre")
+
+            output_word = "" # Sometimes model fails to predict the word, so using a fallback 
 
             predicted_probs = self.model.predict(token_list, verbose=0)
             predicted_word_index = np.argmax(predicted_probs, axis=-1)[0]
