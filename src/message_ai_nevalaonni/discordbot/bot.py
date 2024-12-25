@@ -99,6 +99,7 @@ async def details(ctx):
     embed.set_thumbnail(url="https://i.ibb.co/syT024V/image.png")
     await ctx.respond(embed=embed)
 
+
 @bot.slash_command(description="Syncs commands")
 async def sync(ctx):
     if ctx.author.id != 642441889181728810:

@@ -34,10 +34,11 @@ logger = logging.getLogger("ma")
 
 
 class Extraction:
-    def __init__(self, file_location:str):
+    def __init__(self, file_location:str, ignored:list=[]):
         self.file_location = file_location
         self.valid = self.__check_is_valid()
         self.sentences = []
+        self.ignored_chats = ignored
 
         logger.debug(f"Is valid? {self.valid}")
 
@@ -60,6 +61,9 @@ class Extraction:
 
             if chat.get("name") is None: # chat[name] might itself be null, since saved messages
                 tqdm.write("Chat has no name. If you have the 'saved messages' feature turned on, you can safely ignore this error.")
+                continue
+
+            if chat.get("name") in self.ignored_chats:
                 continue
 
             if chat.get("type") == "bot_chat": 

@@ -32,17 +32,15 @@ def b(a:str) -> bool:
         return False
     return None
 
-def assistant(skip_extraction:bool=False):
-    total_mem_gb = print(round(psutil.virtual_memory().total / (1024**3)))         
+def assistant(skip_extraction:bool=False, ignore_from:list=[]):
+    total_mem_gb = round(psutil.virtual_memory().total / (1024**3))      
     iterations = DEFAULT_FIRST_TIME_ITERATIONS
-    batch_size = 64
+
     print("Hello! Let's start training an AI for you")
 
     if skip_extraction:
         print("Skipping data extraction")
-
         message_file = input("Enter the path to messages.txt (list of sentences): ")
-
         with open(message_file,"r") as f:
             sentences = json.load(f)
     else:
@@ -63,7 +61,7 @@ def assistant(skip_extraction:bool=False):
             extract_args["telegram"] = tgp
         if dc:
             extract_args["discord"] = dcp
-        Extractor("",author=tgu).extract(extract_args)
+        Extractor("",author=tgu,ignored=ignore_from).extract(extract_args)
 
         print("Data succesfully extracted!")
 
@@ -197,7 +195,17 @@ def main():
         sys.argv.extend(["none","none","none","none"])
 
     if sys.argv[1] == "--easy-setup":
-        assistant(sys.argv[2] == "--skip-extract")
+        ignore_list = None
+        try:
+            i = sys.argv.index("--ignore-from")
+            ignore_list = sys.argv[i+1].split(",")
+        except ValueError:
+            logger.debug("No ignore from defined") 
+        except IndexError:
+            print("--ignore-from invalid syntax! Correct usage: --ignore-from person_a,person_b,person_c")
+        if ignore_list is not None:
+            print(f"Ignore list: {ignore_list}")
+        assistant("--skip-extract" in sys.argv, ignore_list)
 
     if sys.argv[1] == "--cont-training":
         add_training("retrain")

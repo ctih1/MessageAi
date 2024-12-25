@@ -21,7 +21,7 @@ class Extractor:
 
         if "telegram" in apps.keys():
             logger.info("Extracting data from telegram package...")
-            self.sentences.extend(tg(apps["telegram"]).loop_over_folders(self.kwargs["author"]).get_messages())
+            self.sentences.extend(tg(apps["telegram"], self.kwargs.get("ignored",[])).loop_over_folders(self.kwargs["author"]).get_messages())
         
         with open("messages.txt","w") as f:
             json.dump(self.sentences,f)
