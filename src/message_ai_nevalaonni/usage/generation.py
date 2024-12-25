@@ -3,6 +3,8 @@ print("Loading TensorFlow library... This might take a bit")
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.backend import clear_session
+import tensorflow as tf
 import os
 
 import pickle
@@ -29,6 +31,12 @@ class Generation:
 
             seed += " " + output_word
         return seed
+    
+    def unalloc_model(self):
+        clear_session()
+    
+    def reinit_model(self):
+        self.model = load_model(self.model_path)
 
 if __name__ == "__main__":
     print(Generation(r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5.new").generate(""))

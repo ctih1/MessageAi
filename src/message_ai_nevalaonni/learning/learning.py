@@ -22,7 +22,9 @@ class Learning:
         self.batch_size = batch_size
         pass
 
-    def train_based_off_sentences(self,sentences:list, iterations=10):
+    def train_based_off_sentences(self,sentences:list, iterations=10, new_model_path:str=None):
+        if new_model_path == None:
+            new_model_path = f"model-{strftime('%d_%m_%Y-%H_%M', localtime())}.h5"
         tokenizer = Tokenizer()
         tokenizer.fit_on_texts(sentences)
         sequences = tokenizer.texts_to_sequences(sentences) # builds a vocab based off of sentences
@@ -48,12 +50,15 @@ class Learning:
         model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 
         model.fit(X_padded, y, epochs=iterations, batch_size=self.batch_size)
-        model.save("model.h5") # save model for later use
+        model.save(new_model_path) 
 
-        with open("tokenizer.pkl", "wb") as handle:  # save in case of emergency
+        with open("tokenizer.pkl", "wb") as handle: 
             pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
-    def add_training_to_model(self, tokenizer, model_path:str, new_sentences:list):
+    def add_training_to_model(self, tokenizer, model_path:str, new_sentences:list, new_model_path:str=None):
+        if new_model_path == None:
+            new_model_path = f"model-{strftime('%d_%m_%Y-%H_%M', localtime())}.h5"
+
         model = load_model(model_path)
         sequences = tokenizer.texts_to_sequences(new_sentences)
 
@@ -72,7 +77,7 @@ class Learning:
         history = model.fit(X_padded, y, epochs=8, validation_data=(X_padded, y), batch_size=self.batch_size)
         checkpoint = ModelCheckpoint("nevalaonni_checkpoint.h5",save_best_only=True, monitor="val_loss", verbose=1)
 
-        model.save(model_path + ".new")
+        model.save(new_model_path)
 
 
     def continious_training_start(self,tokenizer,model_path:str, iterations:int, sentences:list, new_model_path:str = None) -> None:
