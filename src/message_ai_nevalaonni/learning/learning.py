@@ -74,9 +74,7 @@ class Learning:
         X_padded = pad_sequences(X, maxlen=model.layers[0].input_shape[1], padding="pre")
         y = np.array(y)
 
-        history = model.fit(X_padded, y, epochs=8, validation_data=(X_padded, y), batch_size=self.batch_size)
-        checkpoint = ModelCheckpoint("nevalaonni_checkpoint.h5",save_best_only=True, monitor="val_loss", verbose=1)
-
+        model.fit(X_padded, y, epochs=8, validation_data=(X_padded, y), batch_size=self.batch_size)
         model.save(new_model_path)
 
 
