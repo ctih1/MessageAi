@@ -6,3 +6,6 @@ messages.txt
 __pycache__/
 .env
 messages.txt2
+inbreeding.txt
+messages.txt.*
+*.h5.*

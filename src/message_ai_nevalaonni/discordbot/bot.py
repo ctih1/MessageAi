@@ -11,23 +11,85 @@ from time import strftime, localtime
 from pathlib import Path
 import logging
 from ping3 import ping 
+import pickle
+import json
+import random
+
+training_in_progress:bool = False
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 logger = logging.getLogger("ma")
 
-bot = discord.Bot()
+intents = intents.default()
+intents.message_content = True
 
+bot = discord.Bot(intents=intents)
 generation:Generation = None
+inbreeding_messages: list = []
+
+class ProgressCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        # Logs gives you access to metrics like loss, accuracy etc.
+        if logs is None:
+            logs = {}
+        print(f"Iteration {epoch+1}:")
+        for key, value in logs.items():
+            print(f"{key}: {value}")
+    
+    def on_batch_end(self, batch, logs=None):
+        if logs is None:
+            logs = {}
+
+
+def save_inbreeding():
+    global inbreeding_messages
+    with open("inbreeding.txt","r") as f:
+        messages:list = json.load(f)
+    messages.extend(inbreeding_messages)
+    with open("inbreeding.txt","w") as f:
+        json.dump(messages,f)
+    inbreeding_messages = []
+    
+
+def save_inbreeding_backup():
+    with open("inbreeding.txt.bkp","w") as f:
+        json.dump(inbreeding_messages,f)
 
 @bot.event
 async def on_ready():
+    global inbreeding_messages
     global generation
+
     logger.info("Discord bot online")
     generation = Generation(os.getenv("MODEL_PATH")) 
     logger.info("Generation class initialized")
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="The sound of fans spinning on the host server"))
+
+@bot.event
+async def on_message(message: discord.Message):
+    global training_in_progress
+    global inbreeding_messages
+    if message.channel.id == 1321123050422538271 and message.author.id in [1318121553162010634, 1318198147524071504] and not training_in_progress:
+        async with message.channel.typing():
+            inbreeding_messages.append(message.content)
+            ind = random.randint(0,len(message.content.split(" "))-3)
+            generated_sentence = generation.generate(
+                                                    " ".join(message.content.split(" ")[:ind][:ind+2]),
+                                                    random.randint(4,16)
+                                            )
+        await message.channel.send(f"{generated_sentence}\n\n -# Progress to next retrain: {len(inbreeding_messages)}/100")
+        
+    if len(inbreeding_messages) == 100 and not training_in_progress:
+        await message.channel.send("Starting training...")
+        training_in_progress = True
+        __train()
+        await message.channel.send("Training finished")
+        inbreeding_messages.clear()
+        training_in_progress = False
+        
+        
 
 @bot.slash_command(
         description="Generates a sentence based off of my (ctih) messages",
@@ -37,11 +99,14 @@ async def on_ready():
         }
     )       
 async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int, timings:bool=False):
-
+    if training_in_progress:
+        ctx.respond("Training is in progress!")
+        return
     start = time.time()
     await ctx.defer()
     generated_sentence = generation.generate(seed,word_amount)
     a = f'\nGeneration took {round(time.time() - start,3)} seconds' if timings else ''
+    print(f"Responded to {ctx.author.name} with {generated_sentence}")
     await ctx.respond(generated_sentence + a)
 
 @bot.slash_command(
@@ -52,6 +117,9 @@ async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int, timing
         }
     )
 async def details(ctx):
+    if training_in_progress:
+        ctx.respond("Training is in progress!")
+        return
     await ctx.defer()
     cpu = cpuinfo.get_cpu_info()
     embed = discord.Embed(
@@ -69,7 +137,7 @@ async def details(ctx):
             if platform.system() == "Windows":
                 date_mod = os.path.getctime(os.path.join(generation.model_path,file))
             else:
-                date_mod = os.stat(os.path.join(generation.model_path,file)).st_ctime
+                date_mod = os.stat(os.path.join(generation.model_path,file)).st_mtime
             latest_file = date_mod if latest_file < date_mod else latest_file
         model_date = latest_file
 
@@ -78,7 +146,7 @@ async def details(ctx):
         if platform.system() == "Windows":
             date_mod = os.path.getctime(os.path.join(generation.model_path))
         else:
-            date_mod = os.stat(os.path.join(generation.model_path)).st_ctime
+            date_mod = os.stat(os.path.join(generation.model_path)).st_mtime
         model_date = date_mod
 
     model_size = model_size / 1_000_000
@@ -107,6 +175,63 @@ async def sync(ctx):
     await ctx.respond("Synced commands")
     return
 
+inbreeding = discord.SlashCommandGroup("inbreeding","Inbreeding!")
 
-def start(token:str):
-    bot.run(token)
+@inbreeding.command()
+async def conversate(ctx: discord.ApplicationContext):
+    await ctx.defer()
+    await ctx.send(generation.generate("I really like",random.randint(4,16)))
+
+@inbreeding.command()
+async def train(ctx:discord.ApplicationContext):
+    if training_in_progress:
+        ctx.respond("Training is in progress!")
+        return
+    if ctx.author.id not in [542701119948849163,642441889181728810]:
+        ctx.respond("STOP ABUSING ME")
+        return
+    ctx.send("Brah wait a sec im loading tensorflwww")
+    await ctx.defer()
+    await ctx.send("Starting training. This will take around 3 minutes...")
+    start = time.time()
+    __train()
+    await ctx.send(f"Trained model succesfully in {round(time.time() - start)}s")
+
+def __train():
+    global training_in_progress
+    training_in_progress = True
+    from learning.learning import Learning
+    with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
+        tokenizer = pickle.load(f)
+
+    model_path = r"C:\Users\nevalaonni\Desktop\MessageAi\model-inbred.h5"
+    
+    target_sentences = inbreeding_messages.copy()
+    generation.free()
+    Learning(128).add_training_to_model(tokenizer,model_path, target_sentences,1,"model-inbred.h5",callback_class=ProgressCallback())
+    generation.reinit()
+    save_inbreeding()
+
+@inbreeding.command()
+async def reload(ctx:discord.ApplicationContext):
+    if training_in_progress:
+        ctx.respond("Training is in progress!")
+        return
+    global generation
+    await ctx.defer()
+    generation = Generation(os.getenv("MODEL_PATH")) 
+    await ctx.respond("Reloaded model")
+
+@inbreeding.command()
+async def backup(ctx):
+    save_inbreeding_backup()
+    await ctx.respond("Backed up")    
+
+bot.add_application_command(inbreeding)
+
+try:
+    def start(token:str):
+        bot.run(token)
+except Exception as e:
+    print(e.__traceback__)
+    save_inbreeding_backup()

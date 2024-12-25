@@ -19,6 +19,7 @@ import sys
 import psutil
 tf.config.optimizer.set_jit(True)
 from dotenv import set_key
+logger = logging.getLogger("ma")
 
 load_dotenv()
 
@@ -32,8 +33,7 @@ def b(a:str) -> bool:
         return False
     return None
 
-def assistant(skip_extraction:bool=False):
-    total_mem_gb = print(round(psutil.virtual_memory().total / (1024**3)))         
+def assistant(skip_extraction:bool=False, ignored_from=[]):     
     iterations = DEFAULT_FIRST_TIME_ITERATIONS
     batch_size = 64
     print("Hello! Let's start training an AI for you")
@@ -63,7 +63,7 @@ def assistant(skip_extraction:bool=False):
             extract_args["telegram"] = tgp
         if dc:
             extract_args["discord"] = dcp
-        Extractor("",author=tgu).extract(extract_args)
+        Extractor("",author=tgu, ignored=ignored_from).extract(extract_args)
 
         print("Data succesfully extracted!")
 
@@ -197,7 +197,17 @@ def main():
         sys.argv.extend(["none","none","none","none"])
 
     if sys.argv[1] == "--easy-setup":
-        assistant(sys.argv[2] == "--skip-extract")
+        ignore_list = None
+        try:
+            i = sys.argv.index("--ignore-from")
+            ignore_list = sys.argv[i+1].split(",")
+        except ValueError:
+            logger.debug("No ignore from defined") 
+        except IndexError:
+            print("--ignore-from invalid syntax! Correct usage: --ignore-from person_a,person_b,person_c")
+        if ignore_list is not None:
+            print(f"Ignore list: {ignore_list}")
+        assistant("--skip-extract" in sys.argv, ignore_list)
 
     if sys.argv[1] == "--cont-training":
         add_training("retrain")
@@ -217,14 +227,16 @@ def main():
             print(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
 
         model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
-        model=str(list(find_models()[model_index].keys())[0])
+        model=str(list(find_models()[model_index].keys())[0]) 
 
         print(Tools.evaluate(model, tokenizer, sentences))
         quit(0)
 
+    if sys.argv[1] == "--split":
+        with open("split.txt","r") as f:
+            json.load(f)
 
     logging.StreamHandler(sys.stdout)
-    logger = logging.getLogger("ma")
     logging.basicConfig(filename='message_ai.log', level=logging.DEBUG)
 
     logger.info("Starting bot")

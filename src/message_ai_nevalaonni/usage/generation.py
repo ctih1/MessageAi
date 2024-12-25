@@ -4,6 +4,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import os
+import gc
 
 import pickle
 
@@ -19,6 +20,8 @@ class Generation:
             token_list = self.tokenizer.texts_to_sequences([seed])[0]
             token_list = pad_sequences([token_list], maxlen=self.model.layers[0].input_shape[1], padding="pre")
 
+            output_word = ""
+
             predicted_probs = self.model.predict(token_list, verbose=0)
             predicted_word_index = np.argmax(predicted_probs, axis=-1)[0]
 
@@ -26,9 +29,18 @@ class Generation:
                 if index == predicted_word_index:
                     output_word = word
                     break
+            
+            output_word = output_word or "Ion know brah"
 
             seed += " " + output_word
         return seed
+    
+    def free(self): 
+        del self.model
+        gc.collect()
+    
+    def reinit(self):
+        self.model = load_model(self.model_path)
 
 if __name__ == "__main__":
     print(Generation(r"C:\Users\nevalaonni\Desktop\MessageAi\src\nevalaonni.h5.new").generate(""))
