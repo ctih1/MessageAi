@@ -28,20 +28,9 @@ intents.message_content = True
 bot = discord.Bot(intents=intents)
 generation:Generation = None
 inbreeding_messages: list = []
+message_amount:int = 0
 
-class ProgressCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        # Logs gives you access to metrics like loss, accuracy etc.
-        if logs is None:
-            logs = {}
-        print(f"Iteration {epoch+1}:")
-        for key, value in logs.items():
-            print(f"{key}: {value}")
-    
-    def on_batch_end(self, batch, logs=None):
-        if logs is None:
-            logs = {}
-
+TRAIN_AMOUNT=50
 
 def save_inbreeding():
     global inbreeding_messages
@@ -71,7 +60,11 @@ async def on_ready():
 async def on_message(message: discord.Message):
     global training_in_progress
     global inbreeding_messages
-    if message.channel.id == 1321123050422538271 and message.author.id in [1318121553162010634, 1318198147524071504] and not training_in_progress:
+    global message_amount
+    if training_in_progress:
+        return
+    
+    if message.channel.id == 1321123050422538271 and message.author.id in [1318121553162010634, 1318198147524071504]:
         async with message.channel.typing():
             inbreeding_messages.append(message.content)
             ind = random.randint(0,len(message.content.split(" "))-3)
@@ -79,16 +72,16 @@ async def on_message(message: discord.Message):
                                                     " ".join(message.content.split(" ")[:ind][:ind+2]),
                                                     random.randint(4,16)
                                             )
-        await message.channel.send(f"{generated_sentence}\n\n -# Progress to next retrain: {len(inbreeding_messages)}/100")
-        
-    if len(inbreeding_messages) == 100 and not training_in_progress:
-        await message.channel.send("Starting training...")
-        training_in_progress = True
-        __train()
-        await message.channel.send("Training finished")
-        inbreeding_messages.clear()
-        training_in_progress = False
-        
+        await message.channel.send(f"{generated_sentence}\n\n -# Progress to next retrain: {len(inbreeding_messages)}/{TRAIN_AMOUNT}")
+            
+        if len(inbreeding_messages) >= TRAIN_AMOUNT:
+            training_in_progress = True
+            await message.channel.send("Starting training...")
+            __train()
+            await message.channel.send("Training finished")
+            inbreeding_messages.clear()
+            training_in_progress = False
+            
         
 
 @bot.slash_command(
@@ -144,7 +137,7 @@ async def details(ctx):
     else:
         model_size = os.path.getsize(generation.model_path)
         if platform.system() == "Windows":
-            date_mod = os.path.getctime(os.path.join(generation.model_path))
+            date_mod = os.path.getmtime(os.path.join(generation.model_path))
         else:
             date_mod = os.stat(os.path.join(generation.model_path)).st_mtime
         model_date = date_mod
@@ -205,10 +198,10 @@ def __train():
         tokenizer = pickle.load(f)
 
     model_path = r"C:\Users\nevalaonni\Desktop\MessageAi\model-inbred.h5"
-    
+
     target_sentences = inbreeding_messages.copy()
     generation.free()
-    Learning(128).add_training_to_model(tokenizer,model_path, target_sentences,1,"model-inbred.h5",callback_class=ProgressCallback())
+    Learning(128).add_training_to_model(tokenizer,model_path, target_sentences,1,"model-inbred.h5")
     generation.reinit()
     save_inbreeding()
 

@@ -82,7 +82,6 @@ class Learning:
 
         model.save(new_model_path)
 
-
     def continious_training_start(self,tokenizer,model_path:str, iterations:int, sentences:list, new_model_path:str = None) -> None:
         if new_model_path == None:
             new_model_path = f"model-{strftime('%d_%m_%Y-%H_%M', localtime())}.h5"

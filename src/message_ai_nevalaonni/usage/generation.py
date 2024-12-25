@@ -3,6 +3,7 @@ print("Loading TensorFlow library... This might take a bit")
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import tensorflow as tf
 import os
 import gc
 
@@ -36,8 +37,7 @@ class Generation:
         return seed
     
     def free(self): 
-        del self.model
-        gc.collect()
+        tf.keras.backend.clear_session()
     
     def reinit(self):
         self.model = load_model(self.model_path)
