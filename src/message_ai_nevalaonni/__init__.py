@@ -25,6 +25,7 @@ load_dotenv()
 DEFAULT_FIRST_TIME_ITERATIONS:int = 10
 BATCH_SIZE = int(os.getenv("BATCH_SIZE") or 64)
 env_path = os.path.join(os.curdir, ".env")
+
 def b(a:str) -> bool:
     if a.lower() == "yes":
         return True
@@ -49,7 +50,9 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
         if not dc and not tg:
             print("You need atleast one of the following packages to contiue.")
             quit(1)
+
         tgu = "" # if one isn't specified
+
         if tg:
             tgp = input("Enter the path to your telegram package. The folder you select should contain a result.json file ")
             tgu = input("Enter your telegram name (NOT @username). This is used to identify your messages. ")
@@ -260,6 +263,5 @@ def main():
         return
 
     bot.start(os.environ["BOT_TOKEN"])
-
     
 main()

@@ -30,19 +30,19 @@ async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="The sound of fans spinning on the host server"))
 
 @bot.slash_command(
-        description="Generates a sentence based off of my (ctih) messages",
+        description="Generates a sentence from active model",
         integration_types={
             discord.IntegrationType.guild_install,
             discord.IntegrationType.user_install,
         }
     )       
 async def talk(ctx:discord.ApplicationContext, seed:str, word_amount:int, timings:bool=False):
-
     start = time.time()
     await ctx.defer()
     generated_sentence = generation.generate(seed,word_amount)
     a = f'\nGeneration took {round(time.time() - start,3)} seconds' if timings else ''
     await ctx.respond(generated_sentence + a)
+
 
 @bot.slash_command(
         description="Gets information about the model",
@@ -98,6 +98,7 @@ async def details(ctx):
     embed.set_footer(text="Powered by TensorFlow")
     embed.set_thumbnail(url="https://i.ibb.co/syT024V/image.png")
     await ctx.respond(embed=embed)
+
 
 
 @bot.slash_command(description="Syncs commands")

@@ -1,6 +1,6 @@
 from tensorflow import keras
 from keras.models import load_model
-from keras.preprocessing.sequence import pad_sequences
+from keras_preprocessing.sequence import pad_sequences
 import logging
 import numpy as np
 
