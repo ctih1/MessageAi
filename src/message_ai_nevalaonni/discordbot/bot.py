@@ -79,9 +79,9 @@ async def on_message(message: discord.Message):
             training_in_progress = True
             await message.channel.send("Starting training...")
             __train()
+            await message.channel.send("Training finished")
             inbreeding_messages.clear()
             training_in_progress = False
-            await message.channel.send("Training finished")
             
             
         
