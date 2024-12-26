@@ -63,7 +63,7 @@ async def on_message(message: discord.Message):
     global message_amount
     if training_in_progress:
         return
-    
+
     if message.channel.id == 1321123050422538271 and message.author.id in [1318121553162010634, 1318198147524071504]:
         async with message.channel.typing():
             inbreeding_messages.append(message.content)
@@ -78,9 +78,9 @@ async def on_message(message: discord.Message):
             training_in_progress = True
             await message.channel.send("Starting training...")
             __train()
+            training_in_progress = False
             await message.channel.send("Training finished")
             inbreeding_messages.clear()
-            training_in_progress = False
             
         
 
@@ -201,7 +201,7 @@ def __train():
 
     target_sentences = inbreeding_messages.copy()
     generation.free()
-    Learning(128).add_training_to_model(tokenizer,model_path, target_sentences,1,"model-inbred.h5")
+    Learning(128).add_training_to_model(tokenizer,model_path, target_sentences*3,3,"model-inbred.h5")
     generation.reinit()
     save_inbreeding()
 
