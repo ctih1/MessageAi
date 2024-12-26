@@ -61,6 +61,7 @@ async def on_message(message: discord.Message):
     global training_in_progress
     global inbreeding_messages
     global message_amount
+
     if training_in_progress:
         return
 
@@ -78,9 +79,10 @@ async def on_message(message: discord.Message):
             training_in_progress = True
             await message.channel.send("Starting training...")
             __train()
+            inbreeding_messages.clear()
             training_in_progress = False
             await message.channel.send("Training finished")
-            inbreeding_messages.clear()
+            
             
         
 
@@ -183,7 +185,7 @@ async def train(ctx:discord.ApplicationContext):
     if ctx.author.id not in [542701119948849163,642441889181728810]:
         ctx.respond("STOP ABUSING ME")
         return
-    ctx.send("Brah wait a sec im loading tensorflwww")
+    await ctx.send("Brah wait a sec im loading tensorflwww")
     await ctx.defer()
     await ctx.send("Starting training. This will take around 3 minutes...")
     start = time.time()
