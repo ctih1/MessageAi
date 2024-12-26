@@ -197,7 +197,7 @@ def __train():
     with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
         tokenizer = pickle.load(f)
 
-    model_path = r"C:\Users\nevalaonni\Desktop\MessageAi\model-inbred.h5"
+    model_path = os.getenv("MODEL_PATH")
 
     target_sentences = inbreeding_messages.copy()
     generation.free()
