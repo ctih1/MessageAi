@@ -238,9 +238,8 @@ def main():
     logger = logging.getLogger("ma")
     logging.basicConfig(filename='message_ai.log', level=logging.DEBUG)
 
-    logger.info("Starting bot")
 
-    if not os.getenv("BOT_TOKEN"):
+    if not os.getenv("BOT_TOKEN") and not "--local" in os.argv:
         logger.error("Discord bot token not defined in .env")
         token = input("No discord bot token provided. Go to https://discord.com/developers/applications to get your bot token.\n Input your bot token: ")
         if len(token) != 72:
@@ -251,9 +250,6 @@ def main():
     if not os.getenv("MODEL_PATH"):
         logger.error("Model path not defined in .env")
         return
-    
-   # logger.info("Compiling model...")
-
 
     with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
         tokenizer = pickle.load(f)
@@ -263,6 +259,7 @@ def main():
         return
     
     if not "--local" in os.argv:
+        logger.info("Starting bot")
         bot.start(os.environ["BOT_TOKEN"])
     else:
         running = True
