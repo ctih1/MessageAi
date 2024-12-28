@@ -239,7 +239,7 @@ def main():
     logging.basicConfig(filename='message_ai.log', level=logging.DEBUG)
 
 
-    if not os.getenv("BOT_TOKEN") and not "--local" in os.argv:
+    if not os.getenv("BOT_TOKEN") and not "--local" in sys.argv:
         logger.error("Discord bot token not defined in .env")
         token = input("No discord bot token provided. Go to https://discord.com/developers/applications to get your bot token.\n Input your bot token: ")
         if len(token) != 72:
@@ -258,7 +258,7 @@ def main():
         logger.error("Tokenizer path not defined in .env")
         return
     
-    if not "--local" in os.argv:
+    if not "--local" in sys.argv:
         logger.info("Starting bot")
         bot.start(os.environ["BOT_TOKEN"])
     else:
