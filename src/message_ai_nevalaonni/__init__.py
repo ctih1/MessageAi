@@ -261,7 +261,14 @@ def main():
     if not os.getenv("TOKENIZER_PATH"):
         logger.error("Tokenizer path not defined in .env")
         return
-
-    bot.start(os.environ["BOT_TOKEN"])
+    
+    if not "--local" in os.argv:
+        bot.start(os.environ["BOT_TOKEN"])
+    else:
+        running = True
+        print("Entering local mode... Stop with CTRL+C")
+        generation:Generation = Generation(os.getenv("MODEL_PATH"))
+        while running:
+            print(generation.generate(input("Seed: "), int(input("Number of words: "))))
     
 main()
