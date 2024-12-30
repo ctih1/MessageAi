@@ -5,8 +5,11 @@ Python 3.10
 requirements.txt's dependencies
 
 ### For CUDA
-CUDNN 8.1
-CUDA Toolkit 11.2
+CUDA Toolkit 11.2 (https://developer.nvidia.com/cuda-11.2.0-download-archive)
+
+CUDNN 8.1 (https://developer.nvidia.com/rdp/cudnn-archive, and scroll down until you see "cuDNN v8.1.0 (January 26th, 2021), for CUDA 11.0,11.1 and 11.2")
+
+(If you have an **Apple Silicon Mac**, you might have some luck with `tensorflow-metal`, read more below
 
 ## Args
 
@@ -29,3 +32,14 @@ CUDA Toolkit 11.2
 
 
 `--local`: Runs the AI without a discord bot
+
+
+## Apple Silicone users
+Since I don't own an Apple Silicon device, everything listed below is highly experimental, and not guaranteed to work. If you find issues, make sure to create an issue request! 
+
+1. Clone this repository
+2. Make sure you have Python 3.10 installed (During installation, make sure to check the "add to path" box)
+3. Go to the folder where you cloned the project
+4. Open requirements.txt
+5. Change the first line from `tensorflow-gpu==2.10.0` to `tensorflow-metal==0.6.0`
+6. Run setup.sh
