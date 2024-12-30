@@ -19,7 +19,7 @@ import sys
 import psutil
 tf.config.optimizer.set_jit(True)
 from dotenv import set_key
-
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 load_dotenv()
 
 DEFAULT_FIRST_TIME_ITERATIONS:int = 10
@@ -209,6 +209,16 @@ def main():
         if ignore_list is not None:
             print(f"Ignore list: {ignore_list}")
         assistant("--skip-extract" in sys.argv, ignore_list)
+
+    if sys.argv[1] == "--check-gpu":
+        if not tf.test.is_gpu_available():
+            print("No compatible GPU found.")
+            quit(1)
+        else:
+            gpu_details = tf.config.experimental.get_device_details(tf.config.list_physical_devices("GPU")[0])
+            compute_capability = float(f"{gpu_details.get('compute_capability',0)[0]}.{gpu_details.get('compute_capability',0)[1]}")
+            print(f"Found GPU {gpu_details.get('device_name','Unkown')}, which has compute capability {compute_capability} ...")
+            quit(0)
 
     if sys.argv[1] == "--cont-training":
         add_training("retrain")
