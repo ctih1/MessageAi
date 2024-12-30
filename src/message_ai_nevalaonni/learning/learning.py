@@ -15,7 +15,9 @@ import pickle
 import logging
 from time import strftime, localtime
 
-logger = logging.getLogger("ma")
+from dbg.logger import Logger
+
+l = Logger("learning.py")
 BATCH_SIZE = 64
 
 class Learning:
@@ -30,28 +32,38 @@ class Learning:
         tokenizer.fit_on_texts(sentences)
         sequences = tokenizer.texts_to_sequences(sentences) # builds a vocab based off of sentences
 
-        print("model init")
+        l.debug("Tokenizer converted sentences into sequences")
 
-        X = [] # subsequences of word indexes 
-        y = [] # next word in sentence for each subseq
+        X = []
+        y = []
         for seq in sequences:
             for i in range(1, len(seq)):
                 X.append(seq[:i])
                 y.append(seq[i])
 
+        l.debug("Inputs and labels generated")
+
         maxlen = max([len(x) for x in X]) 
-        X_padded = pad_sequences(X, maxlen=maxlen, padding="pre")  # make every subseq the same length
+        X_padded = pad_sequences(X, maxlen=maxlen, padding="pre")
         y = np.array(y) 
 
+        l.debug("Padded sequences")
+
         model = Sequential()
-        model.add(Embedding(input_dim=100000, output_dim=128, input_length=maxlen)) # meaning of words
-        model.add(LSTM(64)) # word "links", aka certain connected words, aka which words follow eachother
-        model.add(Dense(100000, activation="softmax")) # finds the right words in vocab (tokenizer.texts_to_sequences)
+        model.add(Embedding(input_dim=100000, output_dim=128, input_length=maxlen)) # set to 100_000 just to future proof as much as possible
+        model.add(LSTM(64)) 
+        model.add(Dense(100000, activation="softmax")) 
+
+        l.debug("Configured model")
 
         model.compile(optimizer="adam", loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 
+        l.debug("Model compiled")
+
         model.fit(X_padded, y, epochs=iterations, batch_size=self.batch_size)
         model.save(new_model_path) 
+
+        l.debug("Finished model training")
 
         with open("tokenizer.pkl", "wb") as handle: 
             pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -69,9 +81,7 @@ class Learning:
             for i in range(1, len(seq)):
                 X.append(seq[:i])
                 y.append(seq[i])
-
-        print("model init")
-
+                
         X_padded = pad_sequences(X, maxlen=model.layers[0].input_shape[1], padding="pre")
         y = np.array(y)
 

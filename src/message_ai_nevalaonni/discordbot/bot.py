@@ -9,13 +9,14 @@ import time
 import platform
 from time import strftime, localtime
 from pathlib import Path
-import logging
 from ping3 import ping 
+from dbg.logger import Logger
+
+l = Logger("bot.py")
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-logger = logging.getLogger("ma")
 
 bot = discord.Bot()
 
@@ -24,9 +25,9 @@ generation:Generation = None
 @bot.event
 async def on_ready():
     global generation
-    logger.info("Discord bot online")
+    l.info("Discord bot online")
     generation = Generation(os.getenv("MODEL_PATH")) 
-    logger.info("Generation class initialized")
+    l.info("Generation class initialized")
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="The sound of fans spinning on the host server"))
 
 @bot.slash_command(
