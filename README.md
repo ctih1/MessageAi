@@ -9,7 +9,7 @@ CUDA Toolkit 11.2 (https://developer.nvidia.com/cuda-11.2.0-download-archive)
 
 CUDNN 8.1 (https://developer.nvidia.com/rdp/cudnn-archive, and scroll down until you see "cuDNN v8.1.0 (January 26th, 2021), for CUDA 11.0,11.1 and 11.2")
 
-(If you have an **Apple Silicon Mac**, you might have some luck with `tensorflow-metal`, read more below
+If you have an **Apple Silicon Mac**, you might have some luck with `tensorflow-metal`, read more below
 
 ## Args
 
@@ -20,6 +20,9 @@ CUDNN 8.1 (https://developer.nvidia.com/rdp/cudnn-archive, and scroll down until
 
 
 `--ignore-from <array of strings>`: Used during `--easy-setup`. Ignores certain chats while extracting. Uses JSON style array syntax. For example, if we were to ignore people "Mathew" and "James", we'd use `src/message_ai_nevalaonni/__init__.py --easy-setup --ignore-from ["Mathew","James"]`. If you're confused, ask ChatGPT
+
+
+`--check-gpu`: Checks if GPU is available.
 
 
 `--cont-training`: Adds more iterations (epoch) to your model, aka forces it to learn based off of the sentences you've already given it
