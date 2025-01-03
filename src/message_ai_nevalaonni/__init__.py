@@ -121,6 +121,8 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
         elif compute_capability > 2:
             if b(input("Looks like your GPU is bad in matrix multiplication. Would you like to decrease the model qualiy in exchange for shorter learning time? (yes/no): ")):
                 iterations = 4
+        if compute_capability == 0.0:
+            l.warn("Failed to identify compute capability... Setting iterations to default")
         
     if b(input(f"Current iterations selected: {iterations} Do you wish to override this value? Do not change unless you know what you're doing. Override? (yes/no): ")):
         iterations = int(input("How many iterations do you want to run? "))
