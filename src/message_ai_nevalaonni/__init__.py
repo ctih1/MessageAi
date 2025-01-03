@@ -1,5 +1,4 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 from usage.generation import Generation
 from usage.tools import Tools
 from learning.learning import Learning
@@ -17,16 +16,19 @@ import json
 from time import strftime, localtime
 import sys
 import psutil
-tf.config.optimizer.set_jit(True)
 from dotenv import set_key
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
 load_dotenv()
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+tf.config.optimizer.set_jit(True)
 
 l:Logger = Logger("__init__.py")
 
 DEFAULT_FIRST_TIME_ITERATIONS:int = 10
-BATCH_SIZE = int(os.getenv("BATCH_SIZE") or 64)
-env_path = os.path.join(os.curdir, ".env")
+BATCH_SIZE:int = int(os.getenv("BATCH_SIZE") or 64)
+env_path:str = os.path.join(os.curdir, ".env")
 
 def b(a:str) -> bool:
     if a.lower() == "yes":
@@ -42,7 +44,6 @@ def clean_logs():
 
 
 def assistant(skip_extraction:bool=False, ignore_from:list=[]):
-    total_mem_gb = round(psutil.virtual_memory().total / (1024**3))      
     iterations = DEFAULT_FIRST_TIME_ITERATIONS
 
     l.announcement("Hello! Let's start training an AI for you")
@@ -261,7 +262,6 @@ def main():
         l.error("Error message")
         l.critical("Critical message")
         quit(0)
-
 
     if not os.getenv("BOT_TOKEN") and not "--local" in sys.argv:
         l.error("Discord bot token not defined in .env")
