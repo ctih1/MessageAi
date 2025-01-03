@@ -9,3 +9,4 @@ py-cpuinfo==9.0.0
 ping3==4.0.8
 python-dotenv==1.0.1
 colorama==0.4.6
+numpy==1.21.6
