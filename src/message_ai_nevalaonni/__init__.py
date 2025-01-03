@@ -98,7 +98,7 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
     else:
         gpu_details = tf.config.experimental.get_device_details(tf.config.list_physical_devices("GPU")[0])
         l.info(f"Found GPU {gpu_details.get('device_name','Unkown')}, which will be used for training...")
-        compute_capability = float(f"{gpu_details.get('compute_capability',0)[0]}.{gpu_details.get('compute_capability',0)[1]}")
+        compute_capability = float(f"{gpu_details.get('compute_capability',[0,0])[0]}.{gpu_details.get('compute_capability',[0,0])[1]}")
 
         if compute_capability > 8.5: # rtx 3090(ti), 4060ti, 4070ti and higher
             if b(input("Looks like your GPU is very powerful. Would you like to increase the model qualiy in exchange for longer learning time? (yes/no): ")):
