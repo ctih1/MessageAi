@@ -44,5 +44,6 @@ Since I don't own an Apple Silicon device, everything listed below is highly exp
 2. Make sure you have Python 3.10 installed (During installation, make sure to check the "add to path" box)
 3. Go to the folder where you cloned the project
 4. Open requirements.txt
-5. Change the first line from `tensorflow-gpu==2.10.0` to `tensorflow-metal==0.6.0`
-6. Run setup.sh
+5. Change the first line from `tensorflow-gpu==2.10.0` to `tensorflow-macos==2.10.0`
+6. Make a new line below the first one, and add `tensorflow-metal==0.6.0`
+7. Run setup.sh
