@@ -142,7 +142,7 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
 
     l.info("Starting training... This will take a bit. Do not turn off your computer!")
 
-    name = Learning(batch_size).train_based_off_sentences(sentences,iterations)
+    name = learning.train_based_off_sentences(sentences,iterations)
 
     l.debug("Initial model created...")
 
@@ -232,6 +232,12 @@ def main():
         os.environ["MODEL_PATH"] = model
         
         
+    if sys.argv[1] == "--create-tokenizer":
+        tokenizer = learning.create_tokenizer_from_sentences(input("Enter path to sentences"))
+        with open("tokenizer.pkl","wb") as f:
+            pickle.dump(tokenizer,f)
+
+
     if sys.argv[1] == "--easy-setup":
         value = get_argument_value("--ignore-from")
 

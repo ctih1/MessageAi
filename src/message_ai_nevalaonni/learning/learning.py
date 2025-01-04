@@ -24,6 +24,11 @@ class Learning:
         l.debug(f"Initialized Learning with batch size of {batch_size}")
         self.batch_size = batch_size
 
+    def create_tokenizer_from_sentences(self,sentences:list) -> Tokenizer:
+        tokenizer = Tokenizer()
+        tokenizer.fit_on_texts(sentences)
+        return tokenizer
+
     def train_based_off_sentences(self,sentences:list, iterations=10, new_model_path:str=None) -> str:
         if new_model_path == None:
             new_model_path = f"model-{strftime('%d_%m_%Y-%H_%M', localtime())}.h5"

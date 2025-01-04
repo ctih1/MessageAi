@@ -61,8 +61,11 @@ async def details(ctx):
         description=f"Public IP: {requests.get('https://ipinfo.io/ip').text}, OS: { platform.system() if platform.system() != 'Darwin' else 'macOS' } {platform.release() if platform.system() != 'Darwin' else platform.mac_ver()[0]}",
     )
 
-    with open(f"{os.getenv('MODEL_PATH')}.json","r") as f:
-        history = json.load(f)
+    try:
+        with open(f"{os.getenv('MODEL_PATH')}.json","r") as f:
+            history = json.load(f)
+    except FileNotFoundError:
+        history = {}
 
     model_date = None
 
@@ -99,7 +102,7 @@ async def details(ctx):
     embed.add_field(name="Model ran on", value=model_device, inline=False)
     embed.add_field(name="Model created on", value=strftime('%d.%m.%Y %H.%M', localtime(model_date)), inline=False)
     embed.add_field(name="Model name", value=os.getenv("MODEL_PATH"))
-    embed.add_field(name="Model accuracy", value=round(history.get("accuracy",["Unknown"])[-1],3))
+    embed.add_field(name="Model accuracy", value=round(history.get("accuracy",[0.000])[-1],3))
 
     embed.set_footer(text="Powered by TensorFlow")
     embed.set_thumbnail(url="https://i.ibb.co/syT024V/image.png")
