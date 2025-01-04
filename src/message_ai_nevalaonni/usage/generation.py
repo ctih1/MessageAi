@@ -5,13 +5,16 @@ from keras.preprocessing.text import Tokenizer
 from keras_preprocessing.sequence import pad_sequences
 from keras.backend import clear_session
 import tensorflow as tf
+from keras.engine.sequential import Sequential
 import os
-
+from dbg.logger import Logger
 import pickle
+
+l = Logger("generation.py")
 
 class Generation:
     def __init__(self, model_path:str):
-        self.model = load_model(model_path)
+        self.model:Sequential = load_model(model_path)
         self.model_path = model_path # used for bot statistics
         with open(os.getenv("TOKENIZER_PATH"), "rb") as f:
             self.tokenizer = pickle.load(f)
@@ -35,9 +38,11 @@ class Generation:
         return seed
     
     def unalloc_model(self):
+        l.debug("Clearing session...")
         clear_session()
     
     def reinit_model(self):
+        l.debug("Reinit session...")
         self.model = load_model(self.model_path)
 
 if __name__ == "__main__":

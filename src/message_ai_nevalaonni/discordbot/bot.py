@@ -7,6 +7,7 @@ import tensorflow as tf
 import requests
 import time
 import platform
+import json
 from time import strftime, localtime
 from pathlib import Path
 from ping3 import ping 
@@ -60,11 +61,12 @@ async def details(ctx):
         description=f"Public IP: {requests.get('https://ipinfo.io/ip').text}, OS: { platform.system() if platform.system() != 'Darwin' else 'macOS' } {platform.release() if platform.system() != 'Darwin' else platform.mac_ver()[0]}",
     )
 
+    with open(f"{os.getenv('MODEL_PATH')}.json","r") as f:
+        history = json.load(f)
+
     model_date = None
-    model_size = None
 
     if os.path.isdir(generation.model_path):
-        model_size = sum(f.stat().st_size for f in Path(generation.model_path).glob('**/*') if f.is_file())
         latest_file = 0
         for file in os.listdir(generation.model_path):
             if platform.system() == "Windows":
@@ -75,27 +77,30 @@ async def details(ctx):
         model_date = latest_file
 
     else:
-        model_size = os.path.getsize(generation.model_path)
         if platform.system() == "Windows":
             date_mod = os.path.getctime(os.path.join(generation.model_path))
         else:
             date_mod = os.stat(os.path.join(generation.model_path)).st_ctime
         model_date = date_mod
 
-    model_size = model_size / 1_000_000
-        
     gpu_name = None
-    
     model_device = "GPU" if tf.test.is_gpu_available() else "CPU"
+
     if model_device == "GPU": gpu_name = tf.config.experimental.get_device_details(tf.config.list_physical_devices("GPU")[0]).get("device_name","Unkown GPU")
+
     ram_percentage = psutil.Process(os.getpid()).memory_percent()
+    
     embed.add_field(name="CPU Model", value=cpu["brand_raw"], inline=False)
+
     if gpu_name: embed.add_field(name="GPU Model", value=gpu_name)
+
     embed.add_field(name="RAM Used by bot", value=f"{round(psutil.Process(os.getpid()).memory_info().rss / (1024**2),1)}mb", inline=False)
     embed.add_field(name="Ping to frii.site headquarters (1,39€ server in Frankfurt)", value=f"{round(ping('vps.frii.site',timeout=3)*1000)}ms")
     embed.add_field(name="Model ran on", value=model_device, inline=False)
     embed.add_field(name="Model created on", value=strftime('%d.%m.%Y %H.%M', localtime(model_date)), inline=False)
-    embed.add_field(name="Model size", value=f"{round(model_size,1)}mb", inline=False)
+    embed.add_field(name="Model name", value=os.getenv("MODEL_PATH"))
+    embed.add_field(name="Model accuracy", value=round(history.get("accuracy",["Unknown"])[-1],3))
+
     embed.set_footer(text="Powered by TensorFlow")
     embed.set_thumbnail(url="https://i.ibb.co/syT024V/image.png")
     await ctx.respond(embed=embed)

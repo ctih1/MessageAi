@@ -20,6 +20,7 @@ from dotenv import set_key
 
 load_dotenv()
 
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 tf.config.optimizer.set_jit(True)
@@ -27,7 +28,8 @@ tf.config.optimizer.set_jit(True)
 l:Logger = Logger("__init__.py")
 
 DEFAULT_FIRST_TIME_ITERATIONS:int = 10
-BATCH_SIZE:int = int(os.getenv("BATCH_SIZE") or 64)
+learning:Learning
+
 env_path:str = os.path.join(os.curdir, ".env")
 
 def b(a:str) -> bool:
@@ -36,6 +38,16 @@ def b(a:str) -> bool:
     if a.lower() == "no":
         return False
     return None
+
+def get_argument_value(key:str, default:any=None) -> any:
+    val = default
+    try:
+        i = sys.argv.index(key)
+        val = sys.argv[i+1]
+    except ValueError:
+        l.debug(f"Argument {key} has no value. Args: {sys.argv}")
+        return default 
+    return val
 
 def clean_logs():
     files = sorted(os.listdir(os.path.join(".","logs")))
@@ -130,7 +142,7 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
 
     l.info("Starting training... This will take a bit. Do not turn off your computer!")
 
-    name = Learning().train_based_off_sentences(sentences,iterations)
+    name = Learning(batch_size).train_based_off_sentences(sentences,iterations)
 
     l.debug("Initial model created...")
 
@@ -147,7 +159,7 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
 
     iterations = int(input("How many iterations would you like? More = better. Default: 7\n"))
 
-    Learning().continious_training_start(os.getenv("TOKENIZER_PATH"), "model.h5", iterations,sentences, "more_learned.h5")
+    learning.continious_training_start(os.getenv("TOKENIZER_PATH"), "model.h5", iterations,sentences, "more_learned.h5")
 
     if b(input("Continious training done! Do you wish to delete the old model? (yes/no): ")):
         os.remove("model.h5")
@@ -168,28 +180,23 @@ def find_models() -> list:
     return models
 
 
-def add_training(type_:str):
+def add_training(type_:str, path:str):
         with open(os.getenv("TOKENIZER_PATH"),"rb") as f:
             tokenizer = pickle.load(f)
         try:
-            with open("messages.txt","r", encoding="UTF-8") as f:
+            with open(path,"r", encoding="UTF-8") as f:
                 sentences = json.load(f)
         except FileNotFoundError:
-            location = input("Could not find messages.txt. Please provide the file path: ")
+            location = input(f"Could not find {path}. Please provide the file path: ")
             with open(location,"r") as f:
                 sentences = json.load(f)
 
         iterations = int(input("How many iterations would you like? More iterations make a better model, but will increase training time. Default: 7\n"))
         
-        l.announcement("Available models: ")
-        for index, model in enumerate(find_models(),1):
-            l.announcement(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
-
-        model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
-        model=str(list(find_models()[model_index].keys())[0])
+        model = os.getenv("MODEL_PATH")
 
         if type_=="retrain":
-            Learning().continious_training_start(tokenizer,model,iterations,sentences)
+            learning.continious_training_start(tokenizer,model,iterations,sentences)
 
         if type_ == "addition":
             new_sentences_path = input("Enter the path to your new sentences: ")
@@ -202,23 +209,37 @@ def add_training(type_:str):
             except json.JSONDecodeError:
                 l.error("Failed to decode JSON. Please make sure your file contains a list of sentences.")
 
-            Learning().add_training_to_model(tokenizer,model,new_sentences)
+            learning.add_training_to_model(tokenizer,model,new_sentences)
 
 def main():     
+    global learning
     clean_logs()
 
     if len(sys.argv) >= 1:
         sys.argv.extend(["none","none","none","none"])
 
+    batch_size = get_argument_value("--batch-size",64)
+    learning = Learning(batch_size=batch_size)
+
+    
+    if  "--change-model" in sys.argv:
+        l.announcement("Available models: ")
+        for index, model in enumerate(find_models(),1):
+            l.announcement(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
+        model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
+        model=str(list(find_models()[model_index].keys())[0])
+        set_key(dotenv_path=env_path,key_to_set="MODEL_PATH", value_to_set=model)
+        os.environ["MODEL_PATH"] = model
+        
+        
     if sys.argv[1] == "--easy-setup":
-        ignore_list = None
-        try:
-            i = sys.argv.index("--ignore-from")
-            ignore_list = sys.argv[i+1].split(",")
-        except ValueError:
-            l.debug("No ignore from defined") 
-        except IndexError:
-            l.error("--ignore-from invalid syntax! Correct usage: --ignore-from person_a,person_b,person_c")
+        value = get_argument_value("--ignore-from")
+
+        if value is None:
+            ignore_list = None
+        else:
+            ignore_list = value.split(",")
+
         if ignore_list is not None:
             l.debug(f"Ignore list: {ignore_list}")
         assistant("--skip-extract" in sys.argv, ignore_list)
@@ -234,7 +255,7 @@ def main():
             quit(0)
 
     if sys.argv[1] == "--cont-training":
-        add_training("retrain")
+        add_training("retrain", get_argument_value("--input","messages.txt"))
 
     if sys.argv[1] == "--add-training":
         add_training("addition")
@@ -256,13 +277,6 @@ def main():
         l.info(Tools.evaluate(model, tokenizer, sentences))
         quit(0)
 
-    if sys.argv[1] == "--change-model":
-        l.announcement("Available models: ")
-        for index, model in enumerate(find_models(),1):
-            l.announcement(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
-        model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
-        model=str(list(find_models()[model_index].keys())[0])
-        set_key(dotenv_path=env_path,key_to_set="MODEL_PATH", value_to_set=model)
 
     if sys.argv[1] == "--test-log":
         l.announcement("Announcement message")

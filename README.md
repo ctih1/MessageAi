@@ -19,7 +19,7 @@ If you have an **Apple Silicon Mac**, you might have some luck with `tensorflow-
 `--skip-extract`: Used during  `--easy-setup`. Skips extracting messages, which assumes you already have a list of sentences ready
 
 
-`--ignore-from <array of strings>`: Used during `--easy-setup`. Ignores certain chats while extracting. Uses JSON style array syntax. For example, if we were to ignore people "Mathew" and "James", we'd use `src/message_ai_nevalaonni/__init__.py --easy-setup --ignore-from ["Mathew","James"]`. If you're confused, ask ChatGPT
+`--ignore-from <array of strings>`: Used during `--easy-setup`. Ignores certain chats while extracting. Seperates people by commas, For example, if we were to ignore people "Mathew" and "James", we'd use `src/message_ai_nevalaonni/__init__.py --easy-setup --ignore-from Mathew,James`.  NOTE: Do **NOT** use spaces between commas.
 
 
 `--check-gpu`: Checks if GPU is available.
@@ -29,6 +29,9 @@ If you have an **Apple Silicon Mac**, you might have some luck with `tensorflow-
 
 
 `--add-training`: Used for adding more data (sentences) to the model
+
+
+`--change-model`: Allows you to change which model is used in the future. Works with other commands, as long as this arguement is placed in the end of the command
 
 
 `--evaluate`: Evaluates the model's accuracy
