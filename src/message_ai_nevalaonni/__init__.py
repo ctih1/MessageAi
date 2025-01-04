@@ -130,14 +130,14 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
 
     l.info("Starting training... This will take a bit. Do not turn off your computer!")
 
-    Learning().train_based_off_sentences(sentences,iterations)
+    name = Learning().train_based_off_sentences(sentences,iterations)
 
     l.debug("Initial model created...")
 
     if not b(input("First model finished! Do you want to keep training the AI? (yes/no): ")):
         env_path = os.path.join(os.curdir, ".env")
 
-        set_key(dotenv_path=env_path,key_to_set="MODEL_PATH", value_to_set=os.path.join(os.curdir, "model.h5"))
+        set_key(dotenv_path=env_path,key_to_set="MODEL_PATH", value_to_set=os.path.join(os.curdir, name))
         set_key(dotenv_path=env_path,key_to_set="TOKENIZER_PATH", value_to_set=os.path.join(os.curdir, "tokenizer.pkl"))
 
         l.announcement("AI Configuration succesfull! Please relaunch this program to start up the bot")

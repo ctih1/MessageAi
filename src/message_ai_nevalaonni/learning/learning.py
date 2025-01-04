@@ -12,7 +12,6 @@ import os
 import json
 import numpy as np
 import pickle
-import logging
 from time import strftime, localtime
 
 from dbg.logger import Logger
@@ -25,7 +24,7 @@ class Learning:
         self.batch_size = batch_size
         pass
 
-    def train_based_off_sentences(self,sentences:list, iterations=10, new_model_path:str=None):
+    def train_based_off_sentences(self,sentences:list, iterations=10, new_model_path:str=None) -> str:
         if new_model_path == None:
             new_model_path = f"model-{strftime('%d_%m_%Y-%H_%M', localtime())}.h5"
         tokenizer = Tokenizer()
@@ -67,6 +66,8 @@ class Learning:
 
         with open("tokenizer.pkl", "wb") as handle: 
             pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        return new_model_path
     
     def add_training_to_model(self, tokenizer, model_path:str, new_sentences:list, new_model_path:str=None):
         if new_model_path == None:
@@ -81,7 +82,7 @@ class Learning:
             for i in range(1, len(seq)):
                 X.append(seq[:i])
                 y.append(seq[i])
-                
+
         X_padded = pad_sequences(X, maxlen=model.layers[0].input_shape[1], padding="pre")
         y = np.array(y)
 
