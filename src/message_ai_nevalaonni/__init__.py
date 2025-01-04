@@ -256,6 +256,14 @@ def main():
         l.info(Tools.evaluate(model, tokenizer, sentences))
         quit(0)
 
+    if sys.argv[1] == "--change-model":
+        l.announcement("Available models: ")
+        for index, model in enumerate(find_models(),1):
+            l.announcement(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
+        model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
+        model=str(list(find_models()[model_index].keys())[0])
+        set_key(dotenv_path=env_path,key_to_set="MODEL_PATH", value_to_set=model)
+
     if sys.argv[1] == "--test-log":
         l.announcement("Announcement message")
         l.debug("Debug message")
