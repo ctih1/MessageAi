@@ -26,7 +26,7 @@ class Logger:
         self.__log("ERROR",message, Back.RED)
 
     def warn(self, message:str):
-        self.__log("WARNING",message, Back.YELLOW)
+        self.__log("WARNING",message, Fore.RED)
 
     def info(self,message:str):
         self.__log("INFO", message, Fore.CYAN)

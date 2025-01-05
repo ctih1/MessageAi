@@ -44,10 +44,13 @@ def get_argument_value(key:str, default:any=None) -> any:
     try:
         i = sys.argv.index(key)
         val = sys.argv[i+1]
-    except ValueError:
+    except IndexError:
         l.debug(f"Argument {key} has no value. Args: {sys.argv}")
         return default 
+    except ValueError:
+        return default
     return val
+
 
 def clean_logs():
     files = sorted(os.listdir(os.path.join(".","logs")))
@@ -248,6 +251,7 @@ def main():
 
         if ignore_list is not None:
             l.debug(f"Ignore list: {ignore_list}")
+
         assistant("--skip-extract" in sys.argv, ignore_list)
 
     if sys.argv[1] == "--check-gpu":
