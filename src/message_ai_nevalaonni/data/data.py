@@ -1,5 +1,4 @@
 from extractor import Extractor
-import logging
 import json
 
 if __name__ == "__main__":
