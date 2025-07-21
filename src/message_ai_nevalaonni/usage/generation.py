@@ -8,6 +8,7 @@ import tensorflow as tf
 from keras.engine.sequential import Sequential
 import os
 from dbg.logger import Logger
+
 import pickle
 
 l = Logger("generation.py")
@@ -33,6 +34,8 @@ class Generation:
                 if index == predicted_word_index:
                     output_word = word
                     break
+            
+            output_word = output_word or "Ion know brah"
 
             seed += " " + output_word
         return seed

@@ -17,6 +17,7 @@ from time import strftime, localtime
 import sys
 import psutil
 from dotenv import set_key
+logger = logging.getLogger("ma")
 
 load_dotenv()
 
@@ -88,8 +89,8 @@ def assistant(skip_extraction:bool=False, ignore_from:list=[]):
             extract_args["telegram"] = tgp
         if dc:
             extract_args["discord"] = dcp
+            
         Extractor("",author=tgu,ignored=ignore_from).extract(extract_args)
-
         l.info("Data succesfully extracted!")
 
         with open("messages.txt","r") as f:
@@ -282,11 +283,14 @@ def main():
             l.announcement(f"{index}. {list(model.keys())[0]}  ({list(model.values())[0]})")
 
         model_index = int(input(f"\nWhich model would you like to use? (1-{len(find_models())}) ")) - 1
-        model=str(list(find_models()[model_index].keys())[0])
+        model=str(list(find_models()[model_index].keys())[0]) 
 
         l.info(Tools.evaluate(model, tokenizer, sentences))
         quit(0)
 
+    if sys.argv[1] == "--split":
+        with open("split.txt","r") as f:
+            json.load(f)
 
     if sys.argv[1] == "--test-log":
         l.announcement("Announcement message")

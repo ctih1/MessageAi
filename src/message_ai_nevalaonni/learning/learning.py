@@ -12,6 +12,8 @@ import os
 import json
 import numpy as np
 import pickle
+import gc
+
 from time import strftime, localtime
 
 from dbg.logger import Logger
@@ -68,6 +70,7 @@ class Learning:
         model.save(new_model_path) 
 
         l.debug("Finished model training")
+
 
         with open("tokenizer.pkl", "wb") as handle: 
             pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)

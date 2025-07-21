@@ -58,6 +58,9 @@ class Extraction:
             if chat.get("name") is None: # chat[name] might itself be null, since saved messages
                 tqdm.write("Chat has no name. If you have the 'saved messages' feature turned on, you can safely ignore this error.")
                 continue
+        
+            if chat.get("name") in self.ignored_chats:
+                continue
 
             if chat.get("name") in self.ignored_chats:
                 continue
